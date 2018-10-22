@@ -19,7 +19,7 @@ function Test-SingleLineRegistryRule
         $CheckContent
     )
 
-    if ($CheckContent -match "(HKCU|HKLM|HKEY_LOCAL_MACHINE)\\")
+    if ($CheckContent -match $script:registryRegularExpression.RegistryRoot )
     {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] $true"
         $true
@@ -39,7 +39,7 @@ function Test-SingleLineRegistryRule
     .Parameter CheckContent
         An array of the raw string data taken from the STIG setting.
 #>
-function Get-SingleLineRegistryPath
+function Get-SingLineRegistryPath
 {
     [CmdletBinding()]
     [OutputType([string])]
@@ -47,71 +47,60 @@ function Get-SingleLineRegistryPath
     (
         [Parameter(Mandatory = $true)]
         [psobject]
-        $CheckContent
+        $CheckContent,
+
+        [Parameter(Mandatory = $true)]
+        [psobject]
+        $Hashtable
+
     )
+    
+    $fullRegistryPath = $CheckContent
+    
+    foreach($i in $Hashtable.Value.GetEnumerator()) 
+    {  
 
-    $fullRegistryPath = $CheckContent | Select-String -Pattern "((HKLM|HKCU|HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER).*)"
-
-    if (-not $fullRegistryPath)
+    if ($i.Value.GetType().Name -eq 'OrderedDictionary') 
     {
-        return
-    }
-
-    if ($fullRegistryPath.ToString().Contains("Criteria:"))
-    {
-        if ($fullRegistryPath.ToString() -match "((HKLM|HKCU).*(?=Criteria:))")
-        {
-            $fullRegistryPath = $fullRegistryPath.ToString() | Select-String -Pattern "((HKLM|HKCU).*(?=Criteria:))"
-        }
-        elseif ($fullRegistryPath.ToString() -match "Criteria:.*(HKLM|HKCU)")
-        {
-            $fullRegistryPath = $fullRegistryPath.ToString() | Select-String -Pattern "((HKLM|HKCU).*(?=\sis))"
-        }
-    }
-    if ($fullRegistryPath.ToString().Contains("Verify"))
-    {
-        $fullRegistryPath = $fullRegistryPath.ToString() | Select-String -Pattern "((HKLM|HKCU).*(?=Verify))"
-    }
-    if ($fullRegistryPath.ToString().Contains("NETFramework"))
-    {
-        $fullRegistryPath = $fullRegistryPath.ToString() | Select-String -Pattern "((HKLM|HKCU|HKEY_LOCAL_MACHINE).*(?=key))"
-    }
-    if ($fullRegistryPath.Count -gt 1 -and $fullRegistryPath[0] -match 'outlook\\security')
-    {
-        $fullRegistryPath = $fullRegistryPath[1].ToString() | Select-String -Pattern "((HKLM|HKCU).*\\security)"
-    }
-    if ($fullRegistryPath.ToString() -match "the value for hkcu.*Message\sPlain\sFormat\sMime")
-    {
-        $fullRegistryPath = $fullRegistryPath.ToString() | Select-String -Pattern "((HKLM|HKCU).*(?=\sis))"
-    }
-
-    $fullRegistryPath = $fullRegistryPath.Matches.Value
-
-    if ( -not [String]::IsNullOrEmpty( $fullRegistryPath ) )
-    {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)]   Found path : $true"
-
-        switch -Wildcard ($fullRegistryPath)
-        {
-            "*HKLM*" {$fullRegistryPath = $fullRegistryPath -replace "^HKLM", "HKEY_LOCAL_MACHINE"}
-
-            "*HKCU*" {$fullRegistryPath = $fullRegistryPath -replace "^HKCU", "HKEY_CURRENT_USER"}
-
-            "*Software Publishing Criteria" {$fullRegistryPath = $fullRegistryPath -replace 'Software Publishing Criteria$','Software Publishing'}
-        }
-
-        $fullRegistryPath = $fullRegistryPath.ToString().trim(' ', '.')
-
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Trimmed path : $fullRegistryPath"
-    }
+        Get-SingleLineRegistryPath -CheckContent $CheckContent -Hashtable $i
+    } 
     else
     {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)]   Found path : $false"
-        throw "Registry path was not found in check content."
-    }
+        switch ($i.Key)
+        {
+            Contains
+            { 
+                if ($CheckContent.Contains($i.Value)) 
+                {
+                    continue
+                }
+                else 
+                { 
+                    return 
+                }
+            }
 
-    return $fullRegistryPath
-}
+            Match 
+            { 
+                if($CheckContent -match $i.Value )
+                {
+                  continue
+                }
+                else
+                {
+                    return
+                }
+            }
+            
+            Select 
+            { 
+                
+                $regEx =  '{0}' -f $i.Value
+                $result = [regex]::Matches($CheckContent.ToString(), $regEx)
+                $fullRegistryPath = $result.Value
+            }
+        }
+    }
 #endregion
 #region Registry Type
 <#
