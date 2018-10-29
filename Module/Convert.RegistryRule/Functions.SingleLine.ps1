@@ -47,6 +47,27 @@ function Get-SingLineRegistryPath
     (
         [Parameter(Mandatory = $true)]
         [psobject]
+        $CheckContent
+    )
+
+    $regPath = $Script:SingleLineRegistryPath.GetEnumerator() | ForEach-Object { Get-SLRegistryPath -CheckContent $checkContent -Hashtable $_ }
+    return $regPath[-1]
+}
+<#
+    .SYNOPSIS
+        Extract the registry path from an office STIG string.
+
+    .Parameter CheckContent
+        An array of the raw string data taken from the STIG setting.
+#>
+function Get-SLRegistryPath
+{
+    [CmdletBinding()]
+    [OutputType([string])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [psobject]
         $CheckContent,
 
         [Parameter(Mandatory = $true)]
@@ -62,7 +83,7 @@ function Get-SingLineRegistryPath
 
     if ($i.Value.GetType().Name -eq 'OrderedDictionary') 
     {
-        Get-SingleLineRegistryPath -CheckContent $CheckContent -Hashtable $i
+        Get-SLRegistryPath -CheckContent $CheckContent -Hashtable $i
     } 
     else
     {
@@ -101,6 +122,32 @@ function Get-SingLineRegistryPath
             }
         }
     }
+}
+if ( -not [String]::IsNullOrEmpty( $fullRegistryPath ) )
+{
+    Write-Verbose "[$($MyInvocation.MyCommand.Name)]   Found path : $true"
+
+    switch -Wildcard ($fullRegistryPath)
+    {
+        "*HKLM*" {$fullRegistryPath = $fullRegistryPath -replace "^HKLM", "HKEY_LOCAL_MACHINE"}
+
+        "*HKCU*" {$fullRegistryPath = $fullRegistryPath -replace "^HKCU", "HKEY_CURRENT_USER"}
+
+        "*Software Publishing Criteria" {$fullRegistryPath = $fullRegistryPath -replace 'Software Publishing Criteria$','Software Publishing'}
+    }
+
+    $fullRegistryPath = $fullRegistryPath.ToString().trim(' ', '.')
+
+    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Trimmed path : $fullRegistryPath"
+}
+else
+{
+    Write-Verbose "[$($MyInvocation.MyCommand.Name)]   Found path : $false"
+    throw "Registry path was not found in check content."
+}
+
+return $fullRegistryPath
+}
 #endregion
 #region Registry Type
 <#
