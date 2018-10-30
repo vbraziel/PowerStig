@@ -70,7 +70,10 @@ function Get-RegistryHiveFromWindowsStig
     )
 
     # Get the second index of the list, which should be the hive and remove spaces.
-    $hive = ( ( $CheckContent | Select-String -Pattern $script:registryRegularExpression.RegistryHive ) -split ":" )[1]
+
+    $reg = [regex]::Escape("(Registry)?\\s?Hive\\s?:\\s*?(HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER)")
+    $test = $CheckContent | Select-String '(Registry)?\s?Hive\s?:\s*?(HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER)' -AllMatches | ForEach-Object { $_.Matches.Value } 
+    $hive = ( ( $CheckContent | Select-String -Pattern '(Registry)?\s?Hive\s?:\s*?(HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER)' ) -split ":" )[1]
 
     if ( -not [string]::IsNullOrEmpty( $hive ) )
     {
@@ -108,7 +111,8 @@ function Get-RegistryPathFromWindowsStig
     )
 
     $result = @()
-    $paths = ( $CheckContent | Select-String -Pattern $script:registryRegularExpression.registryPath )
+    $paths = ( $CheckContent | Select-String -Pattern  '((Registry)?\s*(Path|SubKey)\s*:\s*|^\\SOFTWARE)(\\)?\w+(\\)(\w+(\\)?|\sP)')
+    #$paths = ( $CheckContent | Select-String -Pattern $script:registryRegularExpression.registryPath )
 
     if ( [string]::IsNullOrEmpty($paths) )
     {
@@ -246,8 +250,8 @@ function Get-RegistryValueTypeFromWindowsStig
         $CheckContent
     )
 
-    $type = ( $CheckContent | Select-String -Pattern $script:registryRegularExpression.registryEntryType ).Matches.Value
-
+    #$type = ( $CheckContent | Select-String -Pattern $script:registryRegularExpression.registryEntryType ).Matches.Value
+    $type = ( $CheckContent | Select-String -Pattern 'Type\s?:\s*?REG_(SZ|BINARY|DWORD|QWORD|MULTI_SZ|EXPAND_SZ)(\s{1,}|$)').Matches.Value
     if ( -not [string]::IsNullOrEmpty( $type ) )
     {
         # Get the second index of the list, which should be the data type and remove spaces.
@@ -316,7 +320,7 @@ function Get-RegistryValueNameFromWindowsStig
 
     # Get the second index of the list, which should be the data type and remove spaces
     [string] $name = ( ( $CheckContent |
-                Select-String -Pattern $script:registryRegularExpression.registryValueName ) -split ":" )[1]
+                Select-String -Pattern '^\s*?Value\s*?Name\s*?:' ) -split ":" )[1]
 
     if ( -not [string]::IsNullOrEmpty( $name ) )
     {
@@ -364,7 +368,7 @@ function Get-RegistryValueData
         }
         default
         {
-            $valueString = ( $CheckContent | Select-String -Pattern $script:registryRegularExpression.registryValueData )
+            $valueString = ( $CheckContent | Select-String -Pattern '^\s*?Value\s*?:' )
             return Get-RegistryValueDataFromWindowsStig -CheckContent $valueString
         }
     }
@@ -394,7 +398,7 @@ function Get-RegistryValueDataFromWindowsStig
         Get the second index of the list, which should be the data and remove spaces# Get the second
         index of the list, which should be the data and remove spaces.
     #>
-    [string] $initialData = ( $CheckContent -replace $script:registryRegularExpression.registryValueData )
+    [string] $initialData = ( $CheckContent -replace '^\s*?Value\s*?:' )
 
     if ( -not [string]::IsNullOrEmpty( $initialData ) )
     {
@@ -619,8 +623,8 @@ function Test-RegistryValueDataIsInteger
         $ValueDataString
     )
 
-    if ( $ValueDataString -Match $script:regularExpression.leadingIntegerUnbound -and
-            $ValueDataString -NotMatch $script:registryRegularExpression.hardenUncPathValues )
+    if ( $ValueDataString -Match '\b([0-9]{1,})\b' -and
+            $ValueDataString -NotMatch '(RequireMutualAuthentication|RequireIntegrity)' )
     {
         Write-Verbose -Message "[$($MyInvocation.MyCommand.Name)] $true"
         return $true
@@ -699,7 +703,7 @@ function Test-RegistryValueDataContainsRange
     )
 
     # Is in a word boundary since it is a common pattern
-    if ( $ValueDataString -match $script:registryRegularExpression.registryValueRange -and
+    if ( $ValueDataString -match '(?<![\w\d])but|\bor\b|and|Possible values(?![\w\d])' -and
          $ValueDataString -notmatch 'does not exist' )
     {
         Write-Verbose -Message "[$($MyInvocation.MyCommand.Name)] $true"
@@ -762,7 +766,7 @@ function Get-MultiValueRegistryStringData
     )
 
     $multiStringEntries = [String]$CheckStrings |
-        Select-String -Pattern $script:registryRegularExpression.MultiStringNamedPipe -AllMatches
+        Select-String -Pattern '(?m)(^)(System|Software)(.+)$' -AllMatches
 
     $multiStringList = @()
     foreach ( $entry in $multiStringEntries.Matches )
@@ -920,16 +924,16 @@ function Test-MultipleRegistryEntries
     else
     {
         [int] $hiveCount = ($CheckContent |
-                Select-String -Pattern $script:registryRegularExpression.registryHive ).Count
+                Select-String -Pattern '(Registry)?\s?Hive\s?:\s*?(HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER)' ).Count
 
         [int] $pathCount = ($CheckContent |
-                Select-String -Pattern $script:registryRegularExpression.registryPath ).Count
+                Select-String -Pattern '((Registry)?\s*(Path|SubKey)\s*:\s*|^\\SOFTWARE)(\\)?\w+(\\)(\w+(\\)?|\sP)' ).Count
 
         [int] $valueCount = ($CheckContent |
-                Select-String -Pattern $script:registryRegularExpression.registryValueData ).Count
+                Select-String -Pattern '^\s*?Value\s*?:' ).Count
 
         [int] $valueNameCount = ($CheckContent |
-                Select-String -Pattern $script:registryRegularExpression.registryValueName ).Count
+                Select-String -Pattern '^\s*?Value\s*?Name\s*?:' ).Count
 
         if ( ( $hiveCount + $pathCount + $valueCount + $valueNameCount ) -gt 4 )
         {
@@ -1018,11 +1022,11 @@ function Split-MultipleRegistryEntries
     }
     else
     {
-        $hives  = $CheckContent | Select-String -Pattern $script:registryRegularExpression.registryHive
-        $paths  = $CheckContent | Select-String -Pattern $script:registryRegularExpression.registryPath
-        $types  = $CheckContent | Select-String -Pattern $script:registryRegularExpression.registryEntryType
-        $names  = $CheckContent | Select-String -Pattern $script:registryRegularExpression.registryValueName
-        $values = $CheckContent | Select-String -Pattern $script:registryRegularExpression.registryValueData
+        $hives  = $CheckContent | Select-String -Pattern '(Registry)?\s?Hive\s?:\s*?(HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER)'
+        $paths  = $CheckContent | Select-String -Pattern '((Registry)?\s*(Path|SubKey)\s*:\s*|^\\SOFTWARE)(\\)?\w+(\\)(\w+(\\)?|\sP)'
+        $types  = $CheckContent | Select-String -Pattern 'Type\s?:\s*?REG_(SZ|BINARY|DWORD|QWORD|MULTI_SZ|EXPAND_SZ)(\s{1,}|$)'
+        $names  = $CheckContent | Select-String -Pattern '^\s*?Value\s*?Name\s*?:'
+        $values = $CheckContent | Select-String -Pattern '^\s*?Value\s*?:'
 
         # If a check contains a multiple registry hives, then reference each one that is discovered.
         if ( $hives.Count -gt 1 )

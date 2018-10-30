@@ -53,6 +53,14 @@ data registryRegularExpression
 '@
 }
 
+data testExpression
+{
+    ConvertFrom-StringData -stringdata @'
+    Red = Apple
+    Yellow = Banana
+'@
+}
+
 $SingleLineRegistryPath = 
      [ordered]@{
         Root     = [ordered]@{ 

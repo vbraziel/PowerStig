@@ -19,7 +19,7 @@ function Test-SingleLineRegistryRule
         $CheckContent
     )
 
-    if ($CheckContent -match $script:registryRegularExpression.RegistryRoot )
+    if ($CheckContent -match "(HKCU|HKLM|HKEY_LOCAL_MACHINE)\\")
     {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] $true"
         $true
@@ -170,60 +170,79 @@ function Get-RegistryValueTypeFromSingleLineStig
 
     try
     {
-        $valueName = Get-RegistryValueNameFromSingleLineStig -CheckContent $CheckContent
+        $regValueType = $Script:SingleLineRegistryValueType.GetEnumerator() | ForEach-Object { Get-RegistryValueTypeFromSLStig -CheckContent $CheckContent -Hashtable $_ }    
     }
     catch
     {
         return
     }
+    
+    return $regValueType
+}
 
-    $valueName = [Regex]::Escape($valueName)
+<#
+    .SYNOPSIS
+        Extract the registry value type from an Office STIG string.
 
-    $valueType = $CheckContent | Select-String -Pattern "(?<=$valueName(\"")? is not ).*="
+    .Parameter CheckContent
+        An array of the raw sting data taken from the STIG setting.
+#>
+function Get-RegistryValueTypeFromSLStig
+{
+    [CmdletBinding()]
+    [OutputType([string])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [psobject]
+        $CheckContent,
 
-    if (-not $valueType)
-    {
-        $valueType = $CheckContent | Select-String -Pattern "(?<=$valueName(\"")?\s+is ).*="
-    }
+        [Parameter(Mandatory = $true)]
+        [psobject]
+        $Hashtable
+    )
 
-    if (-not $valueType)
-    {
-        $valueType = $CheckContent | Select-String -Pattern "(?<=Verify\sa).*(?=value\sof)"
-    }
+    $valueType = $CheckContent
 
-    if (-not $valueType)
-    {
-        $valueType = ($CheckContent | Select-String -Pattern 'registry key exists and the([\s\S]*?)value')
-        if ($valueType)
+    foreach($i in $Hashtable.Value.GetEnumerator()) 
+    {  
+
+        switch ($i.Key)
         {
-            $valueType = $valueType.Matches.Groups[1].Value
-        }
-    }
+            Contains
+            { 
+                if ($CheckContent.Contains($i.Value)) 
+                {
+                    continue
+                }
+                else 
+                { 
+                    return 
+                }
+            }
 
-    if (-not $valueType)
-    {
-        $valueType = $CheckContent | Select-String -Pattern "(?<=$valueName`" is set to ).*`""
-    }
-
-    if (-not $valueType)
-    {
-        $valueType = $CheckContent | Select-String -Pattern "((hkcu|hklm).*\sis\s(.*)=)"
-
-        if ($valueType)
-        {
-            $valueType = $valueType.Matches.Groups[3].Value
-        }
-    }
-
-    if (-not $valueType)
-    {
-        if ($CheckContent | Select-String -Pattern "does not exist, this is not a finding")
-        {
-            return "Does Not Exist"
-        }
-        $valueType = ""
-    }
-
+            Match 
+            { 
+                if($CheckContent -match $i.Value )
+                {
+                  continue
+                }
+                else
+                {
+                    return
+                }
+            }
+            
+            Select 
+            { 
+                $regEx =  '{0}' -f $i.Value
+                $result = [regex]::Matches($CheckContent.ToString(), $regEx)
+                $valueType = $result.Value
+            }
+    } #Switch
+}#Foreach
+     if($valueType)
+     {
     if ($valueType -is [Microsoft.PowerShell.Commands.MatchInfo])
     {
         $valueType = $valueType.Matches.Value.Replace('=', '').Replace('"', '')
@@ -231,10 +250,11 @@ function Get-RegistryValueTypeFromSingleLineStig
 
     if ( -not [String]::IsNullOrWhiteSpace( $valueType.Trim() ) )
     {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)]    Found Type : $valueTypetype"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)]    Found Type : $valueType"
 
         $valueType = Test-RegistryValueType -TestValueType $valueType
         $return = $valueType.trim()
+        #$return = $valueType[0].ValueType.Trim()
 
         Write-Verbose "[$($MyInvocation.MyCommand.Name)]  Trimmed Type : $valueType"
     }
@@ -246,6 +266,11 @@ function Get-RegistryValueTypeFromSingleLineStig
     }
 
     $return
+        }
+    else
+    {
+        return $valueType
+    }
 }
 #endregion
 #region Registry Name
@@ -266,67 +291,109 @@ function Get-RegistryValueNameFromSingleLineStig
         [psobject]
         $CheckContent
     )
-
-    $valueName = $CheckContent | Select-String -Pattern '(?<=If the value(\s*)?((for( )?)?)").*(")?((?=is.*R)|(?=does not exist))'
-
-    if (-not $valueName)
+    try
     {
-        if ($CheckContent -match 'If the.+(registry key does not exist)')
-        {
-            $valueName = $CheckContent | Select-String -Pattern '"[\s\S]*?"' | Select-Object -First 1
-        }
+        $regValueName = $Script:SingleLineRegistryValueName.GetEnumerator() | ForEach-Object { Get-RegistryValueNameFromSLStig -CheckContent $CheckContent -Hashtable $_ }
     }
-
-    if (-not $valueName)
+    catch
     {
-        $valueName = $CheckContent | Select-String -Pattern '(?<=If the value of\s")(.*)(?="\s.*R)|(?=does not exist)'
-    }
-
-    if (-not $valueName)
-    {
-        $valueName = $CheckContent | Select-String -Pattern '((?<=If the value\s)(.*)(?=is\sR))'
-    }
-
-    if (-not $valueName)
-    {
-        if ($CheckContent -match 'the policy value')
-        {
-            $valueName = $CheckContent | Select-String -Pattern '(?<=")(.*)(?="\sis)'
-        }
-    }
-
-    if (-not $valueName)
-    {
-        $valueName = $CheckContent | Select-String -Pattern '((?<=for\s).*)'
-    }
-
-    if (-not $valueName)
-    {
-        $valueName = $CheckContent | Select-String -Pattern "(?<=filevalidation\\).*(?=\sis\sset\sto)"
-    }
-
-    $valueName = $valueName.Matches.Value.Replace('"', '')
-
-    if ($valueName.Count -gt 1)
-    {
-        $valueName = $valueName[0]
-    }
-
-    if ( -not [String]::IsNullOrEmpty( $valueName ) )
-    {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)]   Found Name : $valueName"
-
-        $return = $valueName.trim()
-
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Trimmed Name : $valueName"
-    }
-    else
-    {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)]   Found Name : $false"
         return
     }
+    
+    return $regValueName
+}
+<#
+    .SYNOPSIS
+        Extract the registry value type from a string.
 
-    $return
+    .Parameter CheckContent
+        An array of the raw sting data taken from the STIG setting.
+#>
+function Get-RegistryValueNameFromSLStig
+{
+    [CmdletBinding()]
+    [OutputType([string])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [psobject]
+        $CheckContent,
+
+        [Parameter(Mandatory = $true)]
+        [psobject]
+        $Hashtable
+    )
+
+
+    $valueName = $CheckContent
+    
+    foreach($i in $Hashtable.Value.GetEnumerator()) 
+    {  
+
+        switch ($i.Key)
+        {
+            Contains
+            { 
+                if ($CheckContent.Contains($i.Value)) 
+                {
+                    continue
+                }
+                else 
+                { 
+                    return 
+                }
+            }
+
+            Match 
+            { 
+                if($CheckContent -match $i.Value )
+                {
+                  continue
+                }
+                else
+                {
+                    return
+                }
+            }
+            
+            Select 
+            { 
+                
+                $regEx =  '{0}' -f $i.Value
+                $result = [regex]::Matches($CheckContent.ToString(), $regEx)
+                $valueName = $result.Value
+            }
+    } #Switch
+}#Foreach
+
+     if($valueName)
+     {
+        $valueName = $valueName.Replace('"', '')
+
+        if ($valueName.Count -gt 1)
+        {
+            $valueName = $valueName[0]
+        }
+
+        if ( -not [String]::IsNullOrEmpty( $valueName ) )
+        {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)]   Found Name : $valueName"
+
+            $return = $valueName.trim()
+
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Trimmed Name : $valueName"
+        }
+        else
+        {
+            Write-Verbose "[$($MyInvocation.MyCommand.Name)]   Found Name : $false"
+            return
+        }
+            $return
+        }
+    else
+    {
+        return $valueName
+    }
 }
 #endregion
 #region Registry Data
@@ -349,44 +416,93 @@ function Get-RegistryValueDataFromSingleStig
         [psobject]
         $CheckContent
     )
-
     try
+    {
+        $regValueData = $Script:SingleLineRegistryValueData.GetEnumerator() | ForEach-Object { Get-RegistryValueDataFromSLStig -CheckContent $CheckContent -Hashtable $_ }
+    }
+    catch
+    {
+        return
+    }
+    
+    return $regValueData
+}
+<#
+    .SYNOPSIS
+        Looks for multiple patterns in the value string to extract out the value to return or determine
+        if additional processing is required. For example if an allowable range detected, additional
+        functions need to be called to convert the text into powershell operators.
+
+    .Parameter CheckContent
+        An array of the raw sting data taken from the STIG setting.
+#>
+function Get-RegistryValueDataFromSLStig
+{
+    [CmdletBinding()]
+    [OutputType([string])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [psobject]
+        $CheckContent,
+
+        [Parameter(Mandatory = $true)]
+        [psobject]
+        $Hashtable
+    )
+
+<#     try
     {
         $valueType = Get-RegistryValueTypeFromSingleLineStig -CheckContent $CheckContent
     }
     catch
     {
         return
-    }
+    } #>
 
-    if ($valueType -eq "Does Not Exist")
+    $valueData = $CheckContent
+
+    foreach($i in $Hashtable.Value.GetEnumerator()) 
+    {  
+
+        switch ($i.Key)
+        {
+            Contains
+            { 
+                if ($CheckContent.Contains($i.Value)) 
+                {
+                    continue
+                }
+                else 
+                { 
+                    return 
+                }
+            }
+
+            Match 
+            { 
+                if($CheckContent -match $i.Value )
+                {
+                  continue
+                }
+                else
+                {
+                    return
+                }
+            }
+            
+            Select 
+            { 
+                $regEx =  '{0}' -f $i.Value
+                $result = [regex]::Matches($CheckContent.ToString(), $regEx)
+                $valueData = $result.Value
+            }
+    } #Switch
+}#Foreach
+
+    if($valueData)
     {
-        return
-    }
-
-    $valueData = $CheckContent | Select-String -Pattern "(?<=$($valueType)(\s*)?=).*(?=(,|\())"
-
-    if (-not $valueData)
-    {
-        $valueData = $CheckContent | Select-String -Pattern "((?<=value\sof).*(?=for))"
-    }
-
-    if (-not $valueData)
-    {
-        $valueData = $CheckContent | Select-String -Pattern "((?<=set\sto).*(?=\(true\)))"
-    }
-
-    if (-not $valueData)
-    {
-        $valueData = $CheckContent | Select-String -Pattern "((?<=is\sset\sto\s)(`'|`")).*(?=(`'|`"))"
-    }
-
-    if (-not $valueData)
-    {
-        $valueData = $CheckContent | Select-String -Pattern "(?<=$($valueType)\s=).*"
-    }
-
-    $valueData = $valueData.Matches.Value.Replace(',', '').Replace('"', '')
+    $valueData = $valueData.Replace(',', '').Replace('"', '')
 
     if ( -not [String]::IsNullOrEmpty( $valueData ) )
     {
@@ -403,6 +519,11 @@ function Get-RegistryValueDataFromSingleStig
     }
 
     $return
+    }
+    else
+    {
+        return $valueData
+    }
 }
 #endregion
 #region Ancillary functions
