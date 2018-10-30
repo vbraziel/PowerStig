@@ -1287,8 +1287,8 @@ try
             It "Should return the full Current User registry path" {
                 $checkContent = 'HKCU\Path\To\Value'
                 $returnContent = 'HKEY_CURRENT_USER\Path\To\Value'
-                $returnPath = $Script:SingleLineRegistryPath.GetEnumerator() | ForEach-Object { Get-SingleLineRegistryPath -CheckContent $checkContent -Hashtable $_ }
-                $returnPath[-1] | Should Be $returnContent
+                $returnPath = Get-SingleLineRegistryPath -CheckContent $checkContent
+                $returnPath | Should Be $returnContent
             }
 
             It "Should return the full Local Machine registry path" {
@@ -1300,15 +1300,15 @@ try
             It "Should return the full Current User registry path without a trailing period" {
                 $checkContent = 'HKCU\Path\To\Value.'
                 $returnContent = 'HKEY_CURRENT_USER\Path\To\Value'
-                $returnPath = $Script:SingleLineRegistryPath.GetEnumerator() | ForEach-Object { Get-SingleLineRegistryPath -CheckContent $checkContent -Hashtable $_ }
-                $returnPath[-1] | Should Be $returnContent
+                $returnPath = Get-SingleLineRegistryPath -CheckContent $checkContent
+                $returnPath | Should Be $returnContent
             }
 
             It "Should return the full Local Machine registry path without a trailing period" {
                 $checkContent = 'HKLM\Path\To\Value.'
                 $returnContent = 'HKEY_LOCAL_MACHINE\Path\To\Value'
-                $returnPath = $Script:SingleLineRegistryPath.GetEnumerator() | ForEach-Object { Get-SingleLineRegistryPath -CheckContent $checkContent -Hashtable $_ }
-                $returnPath[-1] | Should Be $returnContent
+                $returnPath = Get-SingleLineRegistryPath -CheckContent $checkContent
+                $returnPath | Should Be $returnContent
             }
         }
 

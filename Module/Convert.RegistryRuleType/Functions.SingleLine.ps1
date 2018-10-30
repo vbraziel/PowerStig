@@ -296,7 +296,7 @@ function Get-RegistryValueTypeFromSingleLineStig
     try
     {
         #$valueName = Get-RegistryValueNameFromSingleLineStig -CheckContent $CheckContent -Hashtable $Script:SingleLineRegistryValueName
-        $valueName = $Script:SingleLineRegistryValueName.GetEnumerator() | ForEach-Object { Get-RegistryValueNameFromSingleLineStig -CheckContent $Script:rawString -Hashtable $_ }
+        $valueName = Get-RegistryValueNameFromSingleLineStig -CheckContent $Script:rawString 
     }
     catch
     {

@@ -24,14 +24,14 @@ function Get-RegistryKey
     $result = @()
     if (Test-SingleLineRegistryRule -CheckContent $CheckContent)
     {
-        $result = $Script:SingleLineRegistryPath.GetEnumerator() | ForEach-Object { Get-SingleLineRegistryPath -CheckContent $checkContent -Hashtable $_ }
-        if ($result[-1] -match "!")
+        $result = Get-SingleLineRegistryPath -CheckContent $checkContent
+        if ($result -match "!")
         {
-            $result = $result[-1].Substring(0, $result.IndexOf('!'))
+            $result = $result.Substring(0, $result.IndexOf('!'))
         } 
         else
         {
-            $result = $result[-1]
+            $result = $result
         }
     }
     else
@@ -168,7 +168,7 @@ function Get-RegistryValueType
     # The Office format is different to check which way to send the strings.
     if ( Test-SingleLineStigFormat -CheckContent $CheckContent )
     {
-        [string] $type = $Script:SingleLineRegistryValueType.GetEnumerator() | ForEach-Object { Get-RegistryValueTypeFromSingleLineStig -CheckContent $CheckContent -Hashtable $_ }
+        [string] $type = Get-RegistryValueTypeFromSingleLineStig -CheckContent $CheckContent
     }
     else
     {
@@ -288,7 +288,7 @@ function Get-RegistryValueName
     # The Office format is different to check which way to send the strings.
     if ( Test-SingleLineStigFormat -CheckContent $CheckContent )
     {
-        $Script:SingleLineRegistryValueName.GetEnumerator() | ForEach-Object { Get-RegistryValueNameFromSingleLineStig -CheckContent $CheckContent -Hashtable $_ }
+        Get-RegistryValueNameFromSingleLineStig -CheckContent $CheckContent
     }
     else
     {
@@ -360,7 +360,7 @@ function Get-RegistryValueData
     {
         { Test-SingleLineStigFormat -CheckContent $CheckContent }
         {
-            return $Script:SingleLineRegistryValueData.GetEnumerator() | ForEach-Object { Get-RegistryValueDataFromSingleStig -CheckContent $CheckContent -Hashtable $_ }
+            return Get-RegistryValueDataFromSingleStig -CheckContent $CheckContent
         }
         default
         {

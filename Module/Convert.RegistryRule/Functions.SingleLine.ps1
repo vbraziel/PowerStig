@@ -39,7 +39,7 @@ function Test-SingleLineRegistryRule
     .Parameter CheckContent
         An array of the raw string data taken from the STIG setting.
 #>
-function Get-SingLineRegistryPath
+function Get-SingleLineRegistryPath
 {
     [CmdletBinding()]
     [OutputType([string])]
