@@ -25,15 +25,8 @@ data registryRegularExpression
         # to account for optional character ranges
 
         registryRoot = ((HKLM|HKCU|HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER).*)
-
-        testItem = @{
-            Red = Apple
-            Yellow = Banana
-        }
         
         registryHive = (Registry)?\\s?Hive\\s?:\\s*?(HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER)
-
-        #registryPath      = ((Registry)?\\s*(Path|SubKey)\\s*:\\s*|^\\\\SOFTWARE)(\\\\)?\\w+(\\\\)\\w+(\\\\)?
 
         registryPath      = ((Registry)?\\s*(Path|SubKey)\\s*:\\s*|^\\\\SOFTWARE)(\\\\)?\\w+(\\\\)(\\w+(\\\\)?|\\sP)
 
@@ -83,7 +76,7 @@ $SingleLineRegistryPath =
 
         Verify = [ordered]@{ 
                         Contains = 'Verify'; 
-                        Select   = $Values.Testing
+                        Select   = '((HKLM|HKCU).*(?=Verify))'
                   };
     }
 
@@ -100,20 +93,21 @@ $SingleLineRegistryValueName =
 
 $SingleLineRegistryValueType = 
      [ordered]@{
-     One = @{ Select = '(?<=$([regex]::escape($valueName))(\"")? is not ).*=' }; #$([regex]::escape($myString))
-     Two = @{ Select = '(?<=$([regex]::escape($valueName))(\"")?\s+is ).*=' };
+     One = @{ Select = '(?<={0}(\"")? is not ).*=' }; #$([regex]::escape($myString))
+     Two = @{ Select =  '(?<="{0}"\sis).*='}; #'(?<={0}(\"")?\s+is ).*=' }; 
+     #'(?<={0}(\"")?\s+is ).*=' };
      Three = @{ Select = '(?<=Verify\sa).*(?=value\sof)'};
      #Four = @{ Select = 'registry key exists and the([\s\S]*?)value'; Group = 1 };
-     Five = @{ Select = '(?<=$([regex]::escape($valueName))`" is set to ).*`"'};
+     Five = @{ Select = '(?<={0}`" is set to ).*`"'};
      #Six = @{ Select = '((hkcu|hklm).*\sis\s(.*)=)'; Group = 3 };
      #Seven = @{ Select = 'does not exist, this is not a finding'; Return = 'Does Not Exist'}
      }
 
 $SingleLineRegistryValueData = 
      [ordered]@{
-     One = @{ Select = '(?<=$($valueType)(\s*)?=).*(?=(,|\())' };
+     One = @{ Select = '(?<={0}(\s*)?=).*(?=(,|\())' };
      Two = @{ Select = '((?<=value\sof).*(?=for))' };
      Three = @{ Select = '((?<=set\sto).*(?=\(true\)))' };
      Four = @{ Select = "((?<=is\sset\sto\s)(`'|`")).*(?=(`'|`"))" };
-     Five = @{ Select = "(?<=$($valueType)\s=).*"}
+     Five = @{ Select = "(?<={0}\s=).*"}
      }
