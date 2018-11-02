@@ -75,15 +75,16 @@ function Get-SLRegistryPath
         $Hashtable
 
     )
-    
-    $fullRegistryPath = $CheckContent
+    $fullRegistryPath = $CheckContent | Select-String -Pattern "((HKLM|HKCU|HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER).*)"
+
+    #$fullRegistryPath = $CheckContent
     
     foreach($i in $Hashtable.Value.GetEnumerator()) 
     {  
 
     if ($i.Value.GetType().Name -eq 'OrderedDictionary') 
     {
-        Get-SLRegistryPath -CheckContent $CheckContent -Hashtable $i
+        Get-SLRegistryPath -CheckContent $fullRegistryPath -Hashtable $i
     } 
     else
     {
@@ -91,7 +92,7 @@ function Get-SLRegistryPath
         {
             Contains
             { 
-                if ($CheckContent.Contains($i.Value)) 
+                if ($fullRegistryPath.ToString().Contains($i.Value)) 
                 {
                     continue
                 }
@@ -103,7 +104,7 @@ function Get-SLRegistryPath
 
             Match 
             { 
-                if($CheckContent -match $i.Value )
+                if($fullRegistryPath -match $i.Value )
                 {
                   continue
                 }
@@ -117,7 +118,7 @@ function Get-SLRegistryPath
             { 
                 
                 $regEx =  '{0}' -f $i.Value
-                $result = [regex]::Matches($CheckContent.ToString(), $regEx)
+                $result = [regex]::Matches($fullRegistryPath, $regEx)
                 $fullRegistryPath = $result.Value
             }
         }
