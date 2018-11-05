@@ -49,8 +49,10 @@ function Get-SingleLineRegistryPath
         [psobject]
         $CheckContent
     )
+    
+    $fullRegistryPath = $CheckContent | Select-String -Pattern "((HKLM|HKCU|HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER).*)"
 
-    $regPath = $Script:SingleLineRegistryPath.GetEnumerator() | ForEach-Object { Get-SLRegistryPath -CheckContent $checkContent -Hashtable $_ }
+    $regPath = $Script:SingleLineRegistryPath.GetEnumerator() | ForEach-Object { Get-SLRegistryPath -CheckContent $fullRegistryPath -Hashtable $_ }
     return $regPath
 }
 <#
@@ -75,9 +77,9 @@ function Get-SLRegistryPath
         $Hashtable
 
     )
-    $fullRegistryPath = $CheckContent | Select-String -Pattern "((HKLM|HKCU|HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER).*)"
+    #$fullRegistryPath = $CheckContent | Select-String -Pattern "((HKLM|HKCU|HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER).*)"
 
-    #$fullRegistryPath = $CheckContent
+    $fullRegistryPath = $CheckContent
     
     foreach($i in $Hashtable.Value.GetEnumerator()) 
     {  
@@ -199,8 +201,8 @@ function Get-RegistryValueTypeFromSLStig
     
     $valueName = $Script:SingleLineRegistryValueName.GetEnumerator() | ForEach-Object { Get-RegistryValueNameFromSLStig -CheckContent $CheckContent -Hashtable $_ }
 
-    #$valueName = [Regex]::Escape($valueName)
-    $valueName = $valueName[0]
+    $valueName = [Regex]::Escape($valueName[0])
+    #$valueName = $valueName[0]
 
     $valueType = $CheckContent
 
@@ -245,6 +247,10 @@ function Get-RegistryValueTypeFromSLStig
                     return
                 }
                 $valueType = $result.Matches[0].Value
+                if($Hashtable.Value['Group'])
+                {
+                    Write-Verbose 'a group exists'
+                }
           }
     } #Switch
 }#Foreach
@@ -331,7 +337,8 @@ function Get-RegistryValueNameFromSLStig
         [psobject]
         $Hashtable
     )
-
+    
+    #$valueName = $CheckContent | Select-String -Pattern '(?<=If the value(\s*)?((for( )?)?)").*(")?((?=is.*R)|(?=does not exist))'
 
     $valueName = $CheckContent
     
@@ -455,7 +462,11 @@ function Get-RegistryValueDataFromSLStig
     )
 
     $valueType = Get-RegistryValueTypeFromSingleLineStig -CheckContent $CheckContent
-
+    
+    if ($valueType -eq "Does Not Exist")
+    {
+        return
+    }
     #$valueData = $CheckContent
 
     foreach($i in $Hashtable.Value.GetEnumerator()) 

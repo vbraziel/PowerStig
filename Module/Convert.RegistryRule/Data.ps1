@@ -56,10 +56,10 @@ data testExpression
 
 $SingleLineRegistryPath = 
      [ordered]@{
-        Root     = [ordered]@{ 
-                        Match    = '(HKCU|HKLM|HKEY_LOCAL_MACHINE)\\'; 
-                        Select   = '((HKLM|HKCU|HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER).*)' 
-                    };
+        # Root     = [ordered]@{ 
+        #                 Match    = '(HKCU|HKLM|HKEY_LOCAL_MACHINE)\\'; 
+        #                 Select   = '((HKLM|HKCU|HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER).*)' 
+        #             };
 
         Criteria = [ordered]@{ 
                         Contains = 'Criteria:'; 
