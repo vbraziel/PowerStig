@@ -50,9 +50,9 @@ function Get-SingleLineRegistryPath
         $CheckContent
     )
     
-    $fullRegistryPath = $CheckContent | Select-String -Pattern "((HKLM|HKCU|HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER).*)"
+    #$fullRegistryPath = $CheckContent | Select-String -Pattern "((HKLM|HKCU|HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER).*)"
 
-    $regPath = $Script:SingleLineRegistryPath.GetEnumerator() | ForEach-Object { Get-SLRegistryPath -CheckContent $fullRegistryPath -Hashtable $_ }
+    $regPath = $Script:SingleLineRegistryPath.GetEnumerator() | ForEach-Object { Get-SLRegistryPath -CheckContent $CheckContent -Hashtable $_ }
     return $regPath
 }
 <#
@@ -120,8 +120,9 @@ function Get-SLRegistryPath
             { 
                 
                 $regEx =  '{0}' -f $i.Value
-                $result = [regex]::Matches($fullRegistryPath, $regEx)
-                $fullRegistryPath = $result.Value
+                #$result = [regex]::Matches($fullRegistryPath, $regEx)
+                $result = $CheckContent | Select-String -Pattern $regEx
+                $fullRegistryPath = $result.Matches[0].Value
             }
         }
     }
@@ -201,9 +202,11 @@ function Get-RegistryValueTypeFromSLStig
     
     $valueName = $Script:SingleLineRegistryValueName.GetEnumerator() | ForEach-Object { Get-RegistryValueNameFromSLStig -CheckContent $CheckContent -Hashtable $_ }
 
-    $valueName = [Regex]::Escape($valueName[0])
-    #$valueName = $valueName[0]
-
+    if($valueName.Count -gt 0)
+    {
+        $valueName = [Regex]::Escape($valueName[0])
+        #$valueName = $valueName[0]
+    }
     $valueType = $CheckContent
 
     foreach($i in $Hashtable.Value.GetEnumerator()) 
@@ -239,24 +242,34 @@ function Get-RegistryValueTypeFromSLStig
             
             Select 
             { 
-                $regEx =  $i.Value -f [regex]::escape($valueName)
-                $result = $CheckContent | Select-String -Pattern $regEx
-               if(-not $result.Matches)
+                if ($valueName)
+                {
+                    $regEx =  $i.Value -f [regex]::escape($valueName)
+                    $result = $CheckContent | Select-String -Pattern $regEx
+                }
+               
+                if(-not $result.Matches)
                 {
                     $msg = "I don't have a value"
                     return
-                }
+                } 
+                else
+                {
                 $valueType = $result.Matches[0].Value
                 if($Hashtable.Value['Group'])
                 {
                     Write-Verbose 'a group exists'
                 }
+            }
           }
     } #Switch
 }#Foreach
      if($valueType)
      {
-        $valueType = $valueType.Replace('=', '').Replace('"', '')
+        $testA = $valueType.ToString().Replace('=', '').Replace('"', '')
+        $testB = $valueType.Replace('=', '').Replace('"', '')
+        $valueType = $testB
+    
 <#     if ($valueType -is [Microsoft.PowerShell.Commands.MatchInfo])
     {
         $valueType = $valueType.Matches.Value.Replace('=', '').Replace('"', '')
@@ -305,15 +318,14 @@ function Get-RegistryValueNameFromSingleLineStig
         [psobject]
         $CheckContent
     )
-    try
-    {
+    # try
+    # {
         $regValueName = $Script:SingleLineRegistryValueName.GetEnumerator() | ForEach-Object { Get-RegistryValueNameFromSLStig -CheckContent $CheckContent -Hashtable $_ }
-    }
-    catch
-    {
-        return
-    }
-    
+    # }
+    # catch
+    # {
+    #     return
+    # }
     return $regValueName[0]
 }
 <#
@@ -375,15 +387,16 @@ function Get-RegistryValueNameFromSLStig
             { 
                 
                 $regEx =  '{0}' -f $i.Value
-                $result = [regex]::Matches($CheckContent.ToString(), $regEx)
-                $valueName = $result.Value
+                $result = $CheckContent | Select-String -Pattern $regEx
+                $valueName = $result
             }
     } #Switch
 }#Foreach
 
      if($valueName)
      {
-        $valueName = $valueName.Replace('"', '')
+        #$valueName = $valueName.Replace('"', '')
+        $valueName = $valueName.Matches.Value.Replace('"', '')
 
         if ($valueName.Count -gt 1)
         {
@@ -503,7 +516,8 @@ function Get-RegistryValueDataFromSLStig
                 #$regEx =  '{0}' -f $i.Value
                 #$result = [regex]::Matches($CheckContent.ToString(), $regEx)
                 $regEx =  $i.Value -f [regex]::escape($valueType)
-                $result = [regex]::Matches($CheckContent.ToString(), $regEx)
+                #$result = [regex]::Matches($CheckContent.ToString(), $regEx)
+                $result = $CheckContent | Select-String -Pattern $regEx
                 if($result.Count -gt 0)
                 {
                     $valueData = $result[0]
@@ -512,10 +526,10 @@ function Get-RegistryValueDataFromSLStig
     } #Switch
 }#Foreach
 
-    if($valueData)
+    if($valueData.Matches)
     {
-    #$valueData = $valueData.Replace(',', '').Replace('"', '')
-
+    $test = $valueData.Matches[0].Value.Replace(',', '').Replace('"', '')
+    $valueData = $test
     if ( -not [String]::IsNullOrEmpty( $valueData ) )
     {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)]   Found Name : $valueData"
