@@ -55,16 +55,15 @@ Describe 'Common Tests - Configuration Module Requirements' {
         Context "$script:DSCModuleName required modules" {
 
             It "Should find <ModuleName> : <ModuleVersion> in the PowerShell public gallery" -TestCases $Manifest.RequiredModules {
-                param ($ModuleName, $ModuleVersion)
+                param ($moduleName, $ModuleVersion)
 
-                $discoveredModule = Find-Module -Name $ModuleName -RequiredVersion $ModuleVersion -Repository 'PsGallery'
+                $discoveredModule = Find-Module -Name $moduleName -RequiredVersion $ModuleVersion -Repository 'PsGallery'
 
-                $discoveredModule.Name    | Should Be $ModuleName
+                $discoveredModule.Name    | Should Be $moduleName
                 $discoveredModule.Version | Should Be $ModuleVersion
             }
         }
     }
-
 
     Describe 'Composite Resources' {
 
@@ -80,12 +79,19 @@ Describe 'Common Tests - Configuration Module Requirements' {
         $TechnologyRoleFilter = @{
             Browser          = 'IE'
             DotNetFramework  = 'DotNet'
+            IisServer        = 'IISServer'
+            IisSite          = 'IISSite'
+            OracleJRE        = 'OracleJRE'
             SqlServer        = 'Database|Instance'
             WindowsDnsServer = 'DNS'
             WindowsFirewall  = 'FW'
             WindowsServer    = 'DC|MS'
+            Office           = 'Outlook2013|Excel2013|PowerPoint2013|Word2013'
+            WindowsClient    = 'Client'
+            FireFox          = 'FireFox'
         }
-        Foreach ($resource in $moduleDscResourceList)
+
+        foreach ($resource in $moduleDscResourceList)
         {
             Context "$resource Composite Resource" {
                 $compositeManifestPath = "$($script:moduleRoot)\DscResources\$resource\$resource.psd1"
@@ -108,7 +114,7 @@ Describe 'Common Tests - Configuration Module Requirements' {
                     $configurationName | Should Be $resource
                 }
 
-                It "Should match ValidateSet from PowerStig" {
+                It 'Should match ValidateSet from PowerStig' {
                     $validateSet = Get-StigVersionParameterValidateSet -FilePath $compositeSchemaPath
                     $availableStigVersions = Get-ValidStigVersionNumbers -TechnologyRoleFilter $TechnologyRoleFilter[$resource]
                     $validateSet | Should BeIn $availableStigVersions

@@ -24,12 +24,20 @@ function Get-KeyValuePair
     $result = @()
     $regex = $fileContentRegex.BetweenAllQuotes -f [char]8220, [char]39, [char]8221
     $regexToRemove = $fileContentRegex.RegexToRemove -f [char]8220, [char]8221, [char]39
-
+    
     foreach ($line in $checkContent)
     {
         $matchResult = $line | Select-String -Pattern $regex -AllMatches
-
-        $lineResult = $matchResult.Matches | Where-Object -FilterScript {$PSItem.Value -notmatch 'about:config'}
+        # Added singleton class to handle different filtering and parsing within STIG files
+        $filterType = [FileContentType]::GetInstance()
+        if ($matchResult)
+        {
+            $lineResult = $filterType.ProcessMatches($matchResult)
+        }
+        else
+        {
+            $lineResult = $matchResult
+        }
 
         if ($lineResult.Count -eq 2)
         {
@@ -45,9 +53,9 @@ function Get-KeyValuePair
             }
         }
         # This code address the edge case where rules browser STIGs manage file extensions
-        if ($lineResult.Count -eq 1 -and ($CheckContent -join '`n') -cmatch $fileContentRegex.TwoTo5CapitalLetters)
+        if ($lineResult.Count -eq 1 -and ($checkContent -join '`n') -cmatch $fileContentRegex.TwoTo5CapitalLetters)
         {
-            $fileExtensionMatches = $CheckContent | Select-String -Pattern $fileContentRegex.CapitalsEndWithSpaceOrDot5 -AllMatches
+            $fileExtensionMatches = $checkContent | Select-String -Pattern $fileContentRegex.CapitalsEndWithSpaceOrDot5 -AllMatches
             $fileExtensions = $fileExtensionMatches.Matches.Value | Where-Object -FilterScript {$PSItem -cmatch $fileContentRegex.CapitalsEndWithSpaceOrDot4}
 
             $result += [pscustomobject]@{
@@ -87,3 +95,4 @@ function Test-MultipleFileContentRule
     }
     return $false
 }
+

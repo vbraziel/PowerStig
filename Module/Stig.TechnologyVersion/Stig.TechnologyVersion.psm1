@@ -16,7 +16,7 @@ using module .\..\Common\Common.psm1
         The Technology for the selected version
 
     .PARAMETER Technology
-            The Technology instance for the selected version
+        The Technology instance for the selected version
 
     .EXAMPLE
         $technologyVersion = [TechnologyVersion]::new([string] $Name, [Technology] $Technology)
@@ -31,9 +31,10 @@ Class TechnologyVersion
 
     # The available versions for each technology currently in PowerStig
     static $ValidateSet = @"
-Windows = All, 2012R2
+Windows = All, 2012R2, 10
 SharePoint = 2013
 SqlServer = 2012
+Mozilla = All
 "@
 
     <#
@@ -128,7 +129,7 @@ SqlServer = 2012
 
 # Footer
 $exclude = @($MyInvocation.MyCommand.Name,'Template.*.txt')
-Foreach ($supportFile in Get-ChildItem -Path $PSScriptRoot -Exclude $exclude)
+foreach ($supportFile in Get-ChildItem -Path $PSScriptRoot -Exclude $exclude)
 {
     Write-Verbose "Loading $($supportFile.FullName)"
     . $supportFile.FullName

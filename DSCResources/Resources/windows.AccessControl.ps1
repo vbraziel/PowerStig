@@ -1,9 +1,9 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-$rules = Get-RuleClassData -StigData $StigData -Name PermissionRule
+$rules = Get-RuleClassData -StigData $stigData -Name PermissionRule
 
-Foreach ( $rule in $rules )
+foreach ( $rule in $rules )
 {
     # Determine PermissionRule type and handle
     Switch ($rule.dscresource)

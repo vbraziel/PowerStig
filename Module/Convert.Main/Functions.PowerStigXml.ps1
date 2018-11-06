@@ -50,10 +50,10 @@ function ConvertTo-PowerStigXml
     }
     Process
     {
-        $convertedStigObjects = ConvertFrom-StigXccdf -Path $Path -IncludeRawString:$IncludeRawString
+        $convertedStigObjects = ConvertFrom-StigXccdf -Path $path -IncludeRawString:$IncludeRawString
 
         # Get the raw xccdf xml to pull additional details from the root node.
-        [xml] $xccdfXml = Get-Content -Path $Path -Encoding UTF8
+        [xml] $xccdfXml = Get-Content -Path $path -Encoding UTF8
         [version] $stigVersionNumber = Get-StigVersionNumber -StigDetails $xccdfXml
 
         $ruleTypeList = Get-RuleTypeList -StigSettings $convertedStigObjects
@@ -62,8 +62,10 @@ function ConvertTo-PowerStigXml
         $xmlDocument = [System.XML.XMLDocument]::New()
         [System.XML.XMLElement] $xmlRoot = $xmlDocument.CreateElement( $xmlElement.stigConvertRoot )
 
-        # Append as child to an existing node. This method will 'leak' an object out of the function
-        # so DO NOT remove the [void]
+        <#
+            Append as child to an existing node. This method will 'leak' an object out of the function
+            so DO NOT remove the [void]
+        #>
         [void] $xmlDocument.appendChild( $xmlRoot )
         $xmlRoot.SetAttribute( $xmlAttribute.stigId , $xccdfXml.Benchmark.ID )
 
@@ -112,7 +114,7 @@ function ConvertTo-PowerStigXml
             }
 
             # These properties are removed becasue they are attributes of the object, not elements
-            foreach ($propertyToRemove in $propertiesToRemove)
+            foreach ( $propertyToRemove in $propertiesToRemove )
             {
                 [void] $properties.Remove( $propertyToRemove )
             }
@@ -207,6 +209,8 @@ function ConvertTo-PowerStigXml
         try
         {
             $xmlDocument.save( $fileList.Settings.FullName )
+            # The save method does not add the required blank line to the file
+            Write-Output -InputObject `n | Out-File -FilePath $fileList.Settings.FullName -Append -Encoding utf8 -NoNewline
             Write-Output "Converted Output: $($fileList.Settings.FullName)"
         }
         catch [System.Exception]
@@ -258,7 +262,7 @@ function Compare-PowerStigXml
 
         [Parameter()]
         [switch]
-        $ignoreRawString
+        $IgnoreRawString
     )
     Begin
     {
@@ -392,7 +396,7 @@ function New-OrganizationalSettingsXmlFile
         $Destination
     )
 
-    $orgSettings = Get-StigObjectsWithOrgSettings -ConvertedStigObjects $ConvertedStigObjects
+    $OrgSettings = Get-StigObjectsWithOrgSettings -ConvertedStigObjects $ConvertedStigObjects
 
     $xmlDocument = [System.XML.XMLDocument]::New()
 
@@ -409,7 +413,7 @@ function New-OrganizationalSettingsXmlFile
     #########################################   Root object   ##########################################
     #########################################    ID object    ##########################################
 
-    foreach ( $orgSetting in $orgSettings)
+    foreach ( $orgSetting in $OrgSettings)
     {
         [System.XML.XMLElement] $xmlSettingChildElement = $xmlDocument.CreateElement(
             $xmlElement.organizationalSettingChild )
@@ -485,7 +489,7 @@ function Get-PowerStigFileList
 
     $id = Split-BenchmarkId -Id $stigDetails.Benchmark.id
 
-    $fileNameBase = "$($Id.Technology)-$($id.TechnologyVersion)-$($id.TechnologyRole)"
+    $fileNameBase = "$($id.Technology)-$($id.TechnologyVersion)-$($id.TechnologyRole)"
     $fileNameBase = $fileNameBase + "-$(Get-StigVersionNumber -StigDetails $StigDetails)"
 
     if ($Destination)
@@ -546,46 +550,52 @@ function Split-BenchmarkId
     $activeDirectoryVariations = @(
         'Active_Directory'
     )
+    $OfficeVariations = @(
+        'Excel',
+        'Outlook',
+        'PowerPoint',
+        'Word'
+    )
 
-    $Id = $Id -replace ($idVariations -join '|'), ''
+    $id = $id -replace ($idVariations -join '|'), ''
 
-    switch ($Id)
+    switch ($id)
     {
         {$PSItem -match "SQL_Server"}
         {
-            $returnId = $Id -replace ($sqlServerVariations -join '|'), 'SqlServer'
+            $returnId = $id -replace ($sqlServerVariations -join '|'), 'SqlServer'
             $returnId = $returnId -replace ($sqlServerInstanceVariations -join '|'), 'Instance'
             continue
         }
         {$PSItem -match "_Firewall"}
         {
-            $returnId = $Id -replace 'Firewall', 'All_FW'
+            $returnId = $id -replace 'Firewall', 'All_FW'
             continue
         }
         {$PSItem -match "Domain_Name_System"}
         {
-            $returnId = $Id -replace ($dnsServerVariations -join '|'), 'DNS'
+            $returnId = $id -replace ($dnsServerVariations -join '|'), 'DNS'
             $returnId = $returnId -replace ($windowsVariations -join '|'), 'Windows'
             continue
         }
         {$PSItem -match "Windows_10"}
         {
-            $returnId = $Id + '_Client'
+            $returnId = $id + '_Client'
             continue
         }
         {$PSItem -match "Windows"}
         {
-            $returnId = $Id -replace ($windowsVariations -join '|'), 'Windows'
+            $returnId = $id -replace ($windowsVariations -join '|'), 'Windows'
             continue
         }
         {$PSItem -match "Active_Directory"}
         {
-            $returnId = $Id -replace ($activeDirectoryVariations -join '|'), 'Windows_All'
+            $returnId = $id -replace ($activeDirectoryVariations -join '|'), 'Windows_All'
             continue
         }
         {$PSItem -match "IE_"}
         {
-            $returnId = "Windows_All_" + -join ($Id -split '_')
+            $returnId = "Windows_All_" + -join ($id -split '_')
             continue
         }
         {$PSItem -match 'FireFox'}
@@ -596,9 +606,15 @@ function Split-BenchmarkId
         {
             $returnId = $Id + '_Server'
         }
+        {$PSItem -match 'Excel' -or $PSItem -match 'Outlook' -or $PSItem -match 'PowerPoint' -or $PSItem -match 'Word'}
+        {
+            $officeStig = ($id -split '_')
+            $officeStig = $officeStig[1] + $officeStig[2]
+            $returnId = 'Windows_All_' + $officeStig
+        }
         default
         {
-            $returnId = $Id
+            $returnId = $id
         }
     }
 
@@ -613,7 +629,7 @@ function Split-BenchmarkId
 
 <#
     .SYNOPSIS
-        Filters the lsit of STIG objects and returns anything that requires an organizational desicion.
+        Filters the list of STIG objects and returns anything that requires an organizational decision.
 
     .PARAMETER convertedStigObjects
         A reference to the object that contains the converted stig data.

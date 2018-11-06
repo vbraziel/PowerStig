@@ -26,7 +26,7 @@ using module .\Module\Convert.RegistryRule\Convert.RegistryRule.psm1
 using module .\Module\Convert.SecurityOptionRule\Convert.SecurityOptionRule.psm1
 using module .\Module\Convert.ServiceRule\Convert.ServiceRule.psm1
 using module .\Module\Convert.SqlScriptQueryRule\Convert.SqlScriptQueryRule.psm1
-using module .\Module\Convert.Stig\Convert.Stig.psm1
+using module .\Module\Rule\Rule.psm1
 using module .\Module\Convert.UserRightsAssignmentRule\Convert.UserRightsAssignmentRule.psm1
 using module .\Module\Convert.WebAppPoolRule\Convert.WebAppPoolRule.psm1
 using module .\Module\Convert.WebConfigurationPropertyRule\Convert.WebConfigurationPropertyRule.psm1
@@ -35,7 +35,7 @@ using module .\Module\Convert.WinEventLogRule\Convert.WinEventLogRule.psm1
 using module .\Module\Convert.WmiRule\Convert.WmiRule.psm1
 
 # load the public functions
-Foreach ($supportFile in ( Get-ChildItem -Path "$PSScriptRoot\Module\Convert.Main" -Filter '*.ps1' ) )
+foreach ($supportFile in ( Get-ChildItem -Path "$PSScriptRoot\Module\Convert.Main" -Filter '*.ps1' ) )
 {
     Write-Verbose "Loading $($supportFile.FullName)"
     . $supportFile.FullName

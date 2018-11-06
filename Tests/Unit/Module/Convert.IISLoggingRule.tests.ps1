@@ -148,8 +148,8 @@ try
 
             Context 'Base Class' {
 
-                It "Shoud have a BaseType of STIG" {
-                    $rule.GetType().BaseType.ToString() | Should Be 'STIG'
+                It 'Shoud have a BaseType of STIG' {
+                    $rule.GetType().BaseType.ToString() | Should Be 'Rule'
                 }
             }
 
@@ -170,17 +170,17 @@ try
                 $classMethods = @('SetLogCustomFields', 'SetLogFlags', 'SetLogFormat', 'SetLogPeriod'
                     'SetLogTargetW3c', 'SetStatus')
 
-                foreach ( $method in $classMethods )
+                foreach ($method in $classMethods)
                 {
                     It "Should have a method named '$method'" {
-                        ( $rule | Get-Member -Name $method ).Name | Should Be $method
+                        ($rule | Get-Member -Name $method).Name | Should Be $method
                     }
                 }
 
                 # If new methods are added this will catch them so test coverage can be added
-                It "Should not have more methods than are tested" {
+                It 'Should not have more methods than are tested' {
                     $memberPlanned = Get-StigBaseMethods -ChildClassMethodNames $classMethods
-                    $memberActual = ( $rule | Get-Member -MemberType Method ).Name
+                    $memberActual = ($rule | Get-Member -MemberType Method).Name
                     $compare = Compare-Object -ReferenceObject $memberActual -DifferenceObject $memberPlanned
                     $compare.Count | Should Be 0
                 }
@@ -188,7 +188,7 @@ try
         }
         #endregion
         #region Method Tests
-        foreach ( $rule in $rulesToTest )
+        foreach ($rule in $rulesToTest)
         {
             $checkContent = Split-TestStrings -CheckContent $rule.CheckContent
             Describe 'Get-LogFlag' {
@@ -219,7 +219,7 @@ try
         foreach ($entry in $customLogEntries)
         {
             Describe 'Get-LogCustomFieldEntry' {
-                It "Should return expected LogCustomFieldEntry object" {
+                It 'Should return expected LogCustomFieldEntry object' {
                     $checkContent = Split-TestStrings -CheckContent $entry.CheckContent
                     $logCustomFieldEntry = Get-LogCustomFieldEntry -CheckContent $checkContent
                     $compare = Compare-Object -ReferenceObject $logCustomFieldEntry -DifferenceObject $entry.LogCustomFieldEntry
@@ -229,11 +229,11 @@ try
         }
         #endregion
         #region Function Tests
-        Describe "ConvertTo-IisLoggingRule" {
+        Describe 'ConvertTo-IisLoggingRule' {
             $stigRule = Get-TestStigRule -CheckContent $rulesToTest[0].checkContent -ReturnGroupOnly
             $rule = ConvertTo-IisLoggingRule -StigRule $stigRule
 
-            It "Should return an IisLoggingRule object" {
+            It 'Should return an IisLoggingRule object' {
                 $rule.GetType() | Should Be 'IisLoggingRule'
             }
         }

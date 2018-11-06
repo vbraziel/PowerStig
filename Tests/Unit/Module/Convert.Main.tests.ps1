@@ -46,19 +46,19 @@ try
                 }
             }
         }
-        Describe "Get-StigVersionNumber" {
+        Describe 'Get-StigVersionNumber' {
             $majorVersionNumber = '1'
             $minorVersionNumber = '5'
             $sampleXccdf = Get-TestStigRule -XccdfVersion $majorVersionNumber `
                 -XccdfRelease "Release: $minorVersionNumber Benchmark Date: 01 Jan 1901"
 
-            It "Should extract the version number from the xccdf" {
+            It 'Should extract the version number from the xccdf' {
                 Get-StigVersionNumber -StigDetails $sampleXccdf |
                     Should Be "$majorVersionNumber.$minorVersionNumber"
             }
         }
 
-        Describe "Get-PowerStigFileList" {
+        Describe 'Get-PowerStigFileList' {
             $majorVersionNumber = '1'
             $minorVersionNumber = '5'
             $sampleXccdf = Get-TestStigRule -XccdfVersion $majorVersionNumber `
@@ -69,13 +69,13 @@ try
 
                 $powerStigFileList = Get-PowerStigFileList -StigDetails $sampleXccdf
 
-                It "Should return a fileInfo Object" {
+                It 'Should return a fileInfo Object' {
                     $powerStigFileList.Settings.GetType().ToString() | Should Be 'System.IO.FileInfo'
                 }
-                It " Should return the file name" {
+                It 'Should return the file name' {
                     $powerStigFileList.Settings.Name | Should Be $expectedName
                 }
-                It " Should return the full path" {
+                It 'Should return the full path' {
                     $powerStigFileList.Settings.FullName | Should Be "$script:moduleRoot\StigData\Processed\$expectedName"
                 }
             }
@@ -85,43 +85,43 @@ try
                 Mock -CommandName Resolve-Path -MockWith {return "C:\Test\Path"}
                 $powerStigFileList = Get-PowerStigFileList -StigDetails $sampleXccdf -Destination ".\Path"
 
-                It "Should return the full path of the supplied destination" {
+                It 'Should return the full path of the supplied destination' {
                     $powerStigFileList.Settings.FullName | Should Be "C:\Test\Path\$expectedName"
                 }
             }
         }
 
-        Describe "Split-BenchmarkId" {
+        Describe 'Split-BenchmarkId' {
 
             $sampleStrings = [ordered]@{
                 'SQLServer' = @(
                     @{
-                        'id' = 'Microsoft_SQL_Server_2012_Database__Security_Technical_Implementation_Guide_NewBenchmark'
-                        'Technology' = 'SQLServer'
+                        'id'                = 'Microsoft_SQL_Server_2012_Database__Security_Technical_Implementation_Guide_NewBenchmark'
+                        'Technology'        = 'SQLServer'
                         'TechnologyVersion' = '2012'
-                        'TechnologyRole' = 'Database'
+                        'TechnologyRole'    = 'Database'
                     },
                     @{
-                        'id' = 'Microsoft_SQL_Server_2012_Database_Instance_Security_Technical_Implementation_Guide'
-                        'Technology' = 'SQLServer'
+                        'id'                = 'Microsoft_SQL_Server_2012_Database_Instance_Security_Technical_Implementation_Guide'
+                        'Technology'        = 'SQLServer'
                         'TechnologyVersion' = '2012'
-                        'TechnologyRole' = 'Instance'
+                        'TechnologyRole'    = 'Instance'
                     }
                 )
                 'Firewall' = @(
                     @{
-                        'id' = 'Windows_Firewall'
-                        'Technology' = 'Windows'
+                        'id'                = 'Windows_Firewall'
+                        'Technology'        = 'Windows'
                         'TechnologyVersion' = 'All'
-                        'TechnologyRole' = 'FW'
+                        'TechnologyRole'    = 'FW'
                     }
                 )
                 'DNS' = @(
                     @{
-                        'id' = 'Microsoft_Windows_2012_Server_Domain_Name_System_STIG'
-                        'Technology' = 'Windows'
+                        'id'                = 'Microsoft_Windows_2012_Server_Domain_Name_System_STIG'
+                        'Technology'        = 'Windows'
                         'TechnologyVersion' = '2012'
-                        'TechnologyRole' = 'DNS'
+                        'TechnologyRole'    = 'DNS'
                     }
                 )
                 'Windows' = @(
@@ -158,24 +158,56 @@ try
                 )
                 'Active_Directory' = @(
                     @{
-                        'id' = 'Active_Directory_Domain'
-                        'Technology' = 'Windows'
+                        'id'                = 'Active_Directory_Domain'
+                        'Technology'        = 'Windows'
                         'TechnologyVersion' = 'All'
-                        'TechnologyRole' = 'Domain'
+                        'TechnologyRole'    = 'Domain'
                     },
                     @{
-                        'id' = 'Active_Directory_Forest'
-                        'Technology' = 'Windows'
+                        'id'                = 'Active_Directory_Forest'
+                        'Technology'        = 'Windows'
                         'TechnologyVersion' = 'All'
-                        'TechnologyRole' = 'Forest'
+                        'TechnologyRole'    = 'Forest'
                     }
                 )
                 'IE' = @(
                     @{
-                        'id' = 'IE_11_STIG'
-                        'Technology' = 'Windows'
+                        'id'                = 'IE_11_STIG'
+                        'Technology'        = 'Windows'
                         'TechnologyVersion' = 'All'
-                        'TechnologyRole' = 'IE11'
+                        'TechnologyRole'    = 'IE11'
+                    }
+                )
+                'Outlook2013' = @(
+                    @{
+                        'id'                = 'Windows_All_Outlook2013'
+                        'Technology'        = 'Windows'
+                        'TechnologyVersion' = 'All'
+                        'TechnologyRole'    = 'Outlook2013'
+                    }
+                )
+                'PowerPoint2013' = @(
+                    @{
+                        'id'                = 'Windows_All_PowerPoint2013'
+                        'Technology'        = 'Windows'
+                        'TechnologyVersion' = 'All'
+                        'TechnologyRole'    = 'PowerPoint2013'
+                    }
+                )
+                'Excel2013' = @(
+                    @{
+                        'id'                = 'Windows_All_Excel2013'
+                        'Technology'        = 'Windows'
+                        'TechnologyVersion' = 'All'
+                        'TechnologyRole'    = 'Excel2013'
+                    }
+                )
+                'Word2013' = @(
+                    @{
+                        'id'                = 'Windows_All_Word2013'
+                        'Technology'        = 'Windows'
+                        'TechnologyVersion' = 'All'
+                        'TechnologyRole'    = 'Word2013'
                     }
                 )
             }
@@ -198,7 +230,6 @@ try
                             }
                         }
                     }
-
                 }
             }
         }

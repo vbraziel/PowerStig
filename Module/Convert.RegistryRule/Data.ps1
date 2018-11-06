@@ -13,14 +13,16 @@ data dscRegistryValueType
         REG_EXPAND_SZ  = ExpandableString
         Does Not Exist = Does Not Exist
         DWORD          = Dword
+        Disabled       = Dword
+        Enabled        = Dword
 '@
 }
 
 data registryRegularExpression
 {
     ConvertFrom-StringData -stringdata @'
-        # the registry hive is not provided in a consistant format, so the search pattern needs
-        # to account for optional character ranges
+        # The registry hive is not provided in a consistant format, so the search pattern needs
+        # To account for optional character ranges
         registryHive = (Registry)?\\s?Hive\\s?:\\s*?(HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER)
 
         #registryPath      = ((Registry)?\\s*(Path|SubKey)\\s*:\\s*|^\\\\SOFTWARE)(\\\\)?\\w+(\\\\)\\w+(\\\\)?
@@ -32,13 +34,13 @@ data registryRegularExpression
         registryValueName = ^\\s*?Value\\s*?Name\\s*?:
 
         registryValueData = ^\\s*?Value\\s*?:
-        # extracts multi string values
+        # Extracts multi string values
         MultiStringNamedPipe = (?m)(^)(System|Software)(.+)$
 
-        # or is in a word boundary since it is a common pattern
+        # Or is in a word boundary since it is a common pattern
         registryValueRange = (?<![\\w\\d])but|\\bor\\b|and|Possible values(?![\\w\\d])
 
-        # this is need validate that a value is still a string even if it contains a number
+        # This is need validate that a value is still a string even if it contains a number
         hardenUncPathValues = (RequireMutualAuthentication|RequireIntegrity)
 '@
 }

@@ -4,7 +4,7 @@ using module .\..\Common\Common.psm1
 
 $exclude = @($MyInvocation.MyCommand.Name,'Template.*.txt')
 $supportFileList = Get-ChildItem -Path $PSScriptRoot -Exclude $exclude
-Foreach ($supportFile in $supportFileList)
+foreach ($supportFile in $supportFileList)
 {
     Write-Verbose "Loading $($supportFile.FullName)"
     . $supportFile.FullName
@@ -40,7 +40,7 @@ Foreach ($supportFile in $supportFileList)
     .PARAMETER DscResource
         Defines the DSC resource used to configure the rule
 #>
-Class STIG : ICloneable
+Class Rule : ICloneable
 {
     [String] $Id
     [String] $Title
@@ -59,7 +59,7 @@ Class STIG : ICloneable
         .DESCRIPTION
             This is the base class constructor
     #>
-    STIG ()
+    Rule ()
     {
     }
 
@@ -97,7 +97,7 @@ Class STIG : ICloneable
             that the Mandatory parameter validation does not fail and to prevent the need for a
             work around by allowing empty strings in mandatory parameters.
         #>
-        $this.SplitCheckContent = [STIG]::SplitCheckContent( $this.rawString )
+        $this.SplitCheckContent = [Rule]::SplitCheckContent( $this.rawString )
 
         # Default Flags
         $this.IsNullOrEmpty = $false

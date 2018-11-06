@@ -2,14 +2,14 @@
 
 Import-Module -Name ( Join-Path -Path $moduleRoot -ChildPath 'DscResources\helper.psm1' )
 
-Describe "Variables" {
+Describe 'Variables' {
 
     It 'Should export the resourcePath variable' {
         $resourcePath | Should Not BeNullOrEmpty
     }
 }
 
-Describe "Functions" {
+Describe 'Functions' {
 
     Context 'Get-ResourceTitle' {
 
@@ -26,6 +26,27 @@ Describe "Functions" {
 
         It 'Should Exist' {
             Get-Command 'Get-RuleClassData' | Should Not BeNullOrEmpty
+        }
+    }
+
+    Context 'Format-FirefoxPreference' {
+
+        It 'Should return a boolean as a string without double quotes' {
+            $result = Format-FirefoxPreference -Value $true
+            $result | Should -BeOftype 'String'
+            $result | Should -Be 'True'
+        }
+
+        It 'Should return a string wrapped in double quotes' {
+            $result = Format-FireFoxPreference -Value 'Meaning of Life'
+            $result | Should -BeOftype 'String'
+            $result | Should -Be '"Meaning of Life"'
+        }
+        
+        It 'Should return and a number as a string without double quotes' {
+            $result = Format-FireFoxPreference -Value 42
+            $result | Should -BeOftype 'String'
+            $result | Should -Be '42'
         }
     }
 }
