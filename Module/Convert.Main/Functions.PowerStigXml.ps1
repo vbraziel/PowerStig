@@ -533,7 +533,8 @@ function Split-BenchmarkId
         '(_+)Security_Technical_Implementation_Guide'
     )
     $sqlServerVariations = @(
-        'Microsoft_SQL_Server'
+        'Microsoft_SQL_Server',
+        'MS_SQL_Server'
     )
     $sqlServerInstanceVariations = @(
         'Database_Instance'
@@ -563,7 +564,7 @@ function Split-BenchmarkId
     {
         {$PSItem -match "SQL_Server"}
         {
-            $returnId = $id -replace ($sqlServerVariations -join '|'), 'SqlServer'
+            $returnId = $id -replace ($sqlServerVariations -join '|'), 'SqlServer' 
             $returnId = $returnId -replace ($sqlServerInstanceVariations -join '|'), 'Instance'
             continue
         }
