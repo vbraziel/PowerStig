@@ -179,7 +179,9 @@ Class PermissionRule : Rule
             $CheckContent -NotMatch "Deny log on through Remote Desktop Services" -and
             $CheckContent -NotMatch "Interview the IAM" -and
             $CheckContent -NotMatch "InetMgr\.exe" -and
-            $CheckContent -NotMatch "Register the required DLL module by typing the following at a command line ""regsvr32 schmmgmt.dll""."
+            $CheckContent -NotMatch "Register the required DLL module by typing the following at a command line ""regsvr32 schmmgmt.dll""." -and
+            $CheckContent -NotMatch "Database permission assignments to users and roles" -and
+            $CheckContent -NotMatch "Instance permissions assignments to logins and roles"
         )
         {
             return $true
