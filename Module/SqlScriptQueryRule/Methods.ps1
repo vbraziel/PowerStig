@@ -303,7 +303,7 @@ function Get-PermissionSetScript
         $CheckContent
     )
 
-    $permission = ((Get-Query -CheckContent $checkContent)[0] -split "'")[1]
+    $permission = ((Get-Query -CheckContent $checkContent)[0] -split "'")[1] #Get the permission that will be set
 
     $return = "DECLARE @name as varchar(512) DECLARE @permission as varchar(512) DECLARE @sqlstring1 as varchar(max) SET @sqlstring1 = 'use master;' SET @permission = '{0}' DECLARE  c1 cursor  for  SELECT who.name AS [Principal Name], what.permission_name AS [Permission Name] FROM sys.server_permissions what INNER JOIN sys.server_principals who ON who.principal_id = what.grantee_principal_id WHERE who.name NOT LIKE '##MS%##' AND who.type_desc <> 'SERVER_ROLE' AND who.name <> 'sa'  AND what.permission_name = @permission OPEN c1 FETCH next FROM c1 INTO @name,@permission WHILE (@@FETCH_STATUS = 0) BEGIN SET @sqlstring1 = @sqlstring1 + 'REVOKE ' + @permission + ' FROM [' + @name + '];' FETCH next FROM c1 INTO @name,@permission END CLOSE c1 DEALLOCATE c1 EXEC ( @sqlstring1 );" -f $permission
 
@@ -477,6 +477,7 @@ function Get-SqlRuleType
 
     switch ( $content )
     {
+        # Standard parsers
         {
             $PSItem -Match 'SELECT' -and
             $PSItem -Match 'existence.*publicly available.*(").*(")\s*(D|d)atabase'
@@ -484,6 +485,7 @@ function Get-SqlRuleType
         {
             $ruleType = 'DbExist'
         }
+        # Standard parsers
         {
             $PSItem -Match 'SELECT' -and
             $PSItem -Match 'traceid' -and
@@ -493,6 +495,7 @@ function Get-SqlRuleType
         {
             $ruleType = 'Trace'
         }
+        # Standard parsers
         {
             $PSItem -Match 'SELECT' -and
             $PSItem -Match 'direct access.*server-level'
@@ -500,6 +503,8 @@ function Get-SqlRuleType
         {
             $ruleType = 'Permission'
         }
+        # Default parser if not caught before now
+        
     }
 
     return $ruleType

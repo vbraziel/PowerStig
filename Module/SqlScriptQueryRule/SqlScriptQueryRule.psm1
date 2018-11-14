@@ -151,14 +151,12 @@ Class SqlScriptQueryRule : Rule
         # Standard match rules
         if
         (
-            (
-                $CheckContent -Match "SELECT" -and
-                $CheckContent -Match 'existence.*publicly available.*(").*(")\s*(D|d)atabase' -or
-                $CheckContent -Match "(DISTINCT|(D|d)istinct)\s+traceid" -or
-                $CheckContent -Match "direct access.*server-level" -and
-                $CheckContent -NotMatch "SHUTDOWN_ON_ERROR" -and
-                $CheckContent -NotMatch "'Alter any availability group' permission"
-            )
+            $CheckContent -Match "SELECT" -and
+            $CheckContent -Match 'existence.*publicly available.*(").*(")\s*(D|d)atabase' -or
+            $CheckContent -Match "(DISTINCT|(D|d)istinct)\s+traceid" -or
+            $CheckContent -Match "direct access.*server-level" -and
+            $CheckContent -NotMatch "SHUTDOWN_ON_ERROR" -and
+            $CheckContent -NotMatch "'Alter any availability group' permission"
         )
         {
             return $true
