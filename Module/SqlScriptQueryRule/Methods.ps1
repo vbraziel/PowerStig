@@ -477,7 +477,7 @@ function Get-SqlRuleType
 
     switch ( $content )
     {
-        # Standard parsers
+        # Standard database existence parsers
         {
             $PSItem -Match 'SELECT' -and
             $PSItem -Match 'existence.*publicly available.*(").*(")\s*(D|d)atabase'
@@ -485,7 +485,7 @@ function Get-SqlRuleType
         {
             $ruleType = 'DbExist'
         }
-        # Standard parsers
+        # Standard trace and event ID parsers
         {
             $PSItem -Match 'SELECT' -and
             $PSItem -Match 'traceid' -and
@@ -495,7 +495,7 @@ function Get-SqlRuleType
         {
             $ruleType = 'Trace'
         }
-        # Standard parsers
+        # Standard permissions parsers
         {
             $PSItem -Match 'SELECT' -and
             $PSItem -Match 'direct access.*server-level'
@@ -504,7 +504,10 @@ function Get-SqlRuleType
             $ruleType = 'Permission'
         }
         # Default parser if not caught before now
-        
+        default
+        {
+            $ruleType = 'RuleTypeNotFound'
+        }
     }
 
     return $ruleType

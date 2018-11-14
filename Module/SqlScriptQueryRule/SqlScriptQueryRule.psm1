@@ -46,18 +46,25 @@ Class SqlScriptQueryRule : Rule
     {
         $this.InvokeClass($StigRule)
         $ruleType = $this.GetRuleType($this.splitCheckContent)
+        if ($ruleType -ne 'RuleTypeNotFound'){
 
-        $fixText = [SqlScriptQueryRule]::GetFixText($StigRule)
+            $fixText = [SqlScriptQueryRule]::GetFixText($StigRule)
 
-        $this.SetGetScript($ruleType)
-        $this.SetTestScript($ruleType)
-        $this.SetSetScript($ruleType, $fixText)
+            $this.SetGetScript($ruleType)
+            $this.SetTestScript($ruleType)
+            $this.SetSetScript($ruleType, $fixText)
+            $this.SetDscResource()
+
+        } else {
+            $thisid = $this.Id
+            write-verbose "$thisid parses as a SQL script rule but the SQL rule type could not be determined. Conversion status set to Fail for this rule."
+            $this.SetStatus($null)    # Will set the conversion status to = fail
+        }
 
         if ($this.IsDuplicateRule($global:stigSettings))
         {
             $this.SetDuplicateTitle()
         }
-        $this.SetDscResource()
     }
 
     #region Methods
