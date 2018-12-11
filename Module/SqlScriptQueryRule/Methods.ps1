@@ -98,6 +98,42 @@ function Get-PermissionGetScript
 }
 
 <#
+    .SYNOPSIS Get-AuditGetScript
+        Returns a query that will get a list of audit events
+
+    .DESCRIPTION
+        The SqlScriptResource uses a script resource format with GetScript, TestScript and SetScript.
+        The SQL STIG contains queries that will be placed in each of those blocks.
+        This functions returns the query that will be used in the GetScript block
+
+    .PARAMETER CheckContent
+        This is the 'CheckContent' derived from the STIG raw string and holds the query that will be returned
+#>
+function Get-AuditGetScript
+{
+    [CmdletBinding()]
+    [OutputType([string])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
+        [string[]]
+        $CheckContent
+    )
+
+    $queries = Get-Query -CheckContent $checkContent
+
+    $return = $queries[0]
+
+    if ($return -notmatch ";$")
+    {
+        $return = $return + ";"
+    }
+
+    return $return
+}
+
+<#
     .SYNOPSIS Get-DbExistTestScript
         Returns the query that checks to see if a DB exists.
 
@@ -170,6 +206,42 @@ function Get-TraceTestScript
         This is the 'CheckContent' derived from the STIG raw string and holds the query that will be returned
 #>
 function Get-PermissionTestScript
+{
+    [CmdletBinding()]
+    [OutputType([string])]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
+        [string[]]
+        $CheckContent
+    )
+
+    $queries = Get-Query -CheckContent $checkContent
+
+    $return = $queries[0]
+
+    if ($return -notmatch ";$")
+    {
+        $return = $return + ";"
+    }
+
+    return $return
+}
+
+<#
+    .SYNOPSIS Get-AuditTestScript
+        Returns a query that will get a list of audit events
+
+    .DESCRIPTION
+        The SqlScriptResource uses a script resource format with GetScript, TestScript and SetScript.
+        The SQL STIG contains queries that will be placed in each of those blocks.
+        This functions returns the query that will be used in the TestScript block
+
+    .PARAMETER CheckContent
+        This is the 'CheckContent' derived from the STIG raw string and holds the query that will be returned
+#>
+function Get-AuditTestScript
 {
     [CmdletBinding()]
     [OutputType([string])]
@@ -307,6 +379,47 @@ function Get-PermissionSetScript
 
     $return = "DECLARE @name as varchar(512) DECLARE @permission as varchar(512) DECLARE @sqlstring1 as varchar(max) SET @sqlstring1 = 'use master;' SET @permission = '{0}' DECLARE  c1 cursor  for  SELECT who.name AS [Principal Name], what.permission_name AS [Permission Name] FROM sys.server_permissions what INNER JOIN sys.server_principals who ON who.principal_id = what.grantee_principal_id WHERE who.name NOT LIKE '##MS%##' AND who.type_desc <> 'SERVER_ROLE' AND who.name <> 'sa'  AND what.permission_name = @permission OPEN c1 FETCH next FROM c1 INTO @name,@permission WHILE (@@FETCH_STATUS = 0) BEGIN SET @sqlstring1 = @sqlstring1 + 'REVOKE ' + @permission + ' FROM [' + @name + '];' FETCH next FROM c1 INTO @name,@permission END CLOSE c1 DEALLOCATE c1 EXEC ( @sqlstring1 );" -f $permission
 
+    return $return
+}
+
+<#
+    .SYNOPSIS Get-AuditSetScript
+        Returns an SQL Statemnt that will create an audit
+
+    .DESCRIPTION
+        The SqlScriptResource uses a script resource format with GetScript, TestScript and SetScript.
+        The SQL STIG contains queries that will be placed in each of those blocks.
+        This functions returns the query that will be used in the SetScript block
+
+    .PARAMETER FixText
+        String that was obtained from the 'Fix' element of the base STIG Rule
+
+    .PARAMETER CheckContent
+        Arbitrary in this function but is needed in Get-TraceSetScript
+#>
+function Get-AuditSetScript
+{
+    [CmdletBinding()]
+    [OutputType([string])]
+    param
+    (
+        [Parameter()]
+        [AllowEmptyString()]
+        [string[]]
+        $FixText,
+
+        [Parameter()]
+        [AllowEmptyString()]
+        [string[]]
+        $CheckContent
+    )
+
+    #$permission = ((Get-Query -CheckContent $checkContent)[0] -split "'")[1] #Get the permission that will be set
+
+    #$return = "DECLARE @name as varchar(512) DECLARE @permission as varchar(512) DECLARE @sqlstring1 as varchar(max) SET @sqlstring1 = 'use master;' SET @permission = '{0}' DECLARE  c1 cursor  for  SELECT who.name AS [Principal Name], what.permission_name AS [Permission Name] FROM sys.server_permissions what INNER JOIN sys.server_principals who ON who.principal_id = what.grantee_principal_id WHERE who.name NOT LIKE '##MS%##' AND who.type_desc <> 'SERVER_ROLE' AND who.name <> 'sa'  AND what.permission_name = @permission OPEN c1 FETCH next FROM c1 INTO @name,@permission WHILE (@@FETCH_STATUS = 0) BEGIN SET @sqlstring1 = @sqlstring1 + 'REVOKE ' + @permission + ' FROM [' + @name + '];' FETCH next FROM c1 INTO @name,@permission END CLOSE c1 DEALLOCATE c1 EXEC ( @sqlstring1 );" -f $permission
+
+    $return = "CREATE AUDIT"
+    
     return $return
 }
 
@@ -502,6 +615,13 @@ function Get-SqlRuleType
         }
         {
             $ruleType = 'Permission'
+        }
+        # Audit rules for SQL Server 2012 and beyond
+        {
+            $PSItem -Match 'DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP'
+        }
+        {
+            $ruleType = 'Audit'
         }
         # Default parser if not caught before now
         default
