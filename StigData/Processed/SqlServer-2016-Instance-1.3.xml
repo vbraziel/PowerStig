@@ -1,4 +1,4 @@
-<DISASTIG id="MS_SQL_Server_2016_Instance_STIG" version="1.3" created="11/14/2018">
+<DISASTIG id="MS_SQL_Server_2016_Instance_STIG" version="1.3" created="12/12/2018">
   <DocumentRule dscresourcemodule="None">
     <Rule id="V-79119" severity="medium" conversionstatus="pass" title="SRG-APP-000001-DB-000031" dscresource="None">
       <IsNullOrEmpty>False</IsNullOrEmpty>
@@ -179,82 +179,6 @@ WHERE a.is_state_enabled = 1
  
 Compare the documentation to the list of generated audit events. If there are any missing events, this is a finding.</RawString>
     </Rule>
-    <Rule id="V-79135" severity="medium" conversionstatus="pass" title="SRG-APP-000090-DB-000065" dscresource="None">
-      <IsNullOrEmpty>False</IsNullOrEmpty>
-      <OrganizationValueRequired>False</OrganizationValueRequired>
-      <OrganizationValueTestString />
-      <RawString>Obtain the list of approved audit maintainers from the system documentation. 
- 
-Review the server roles and individual logins that have the following role memberships, all of which enable the ability to create and maintain audit definitions. 
- 
-sysadmin 
-dbcreator 
- 
-Review the server roles and individual logins that have the following permissions, all of which enable the ability to create and maintain audit definitions. 
- 
-ALTER ANY SERVER AUDIT  
-CONTROL SERVER  
-ALTER ANY DATABASE  
-CREATE ANY DATABASE 
- 
-Use the following query to determine the roles and logins that have the listed permissions: 
- 
-SELECT-- DISTINCT 
-    CASE 
-        WHEN SP.class_desc IS NOT NULL THEN  
-            CASE 
-                WHEN SP.class_desc = 'SERVER' AND S.is_linked = 0 THEN 'SERVER' 
-                WHEN SP.class_desc = 'SERVER' AND S.is_linked = 1 THEN 'SERVER (linked)' 
-                ELSE SP.class_desc 
-            END 
-        WHEN E.name IS NOT NULL THEN 'ENDPOINT' 
-        WHEN S.name IS NOT NULL AND S.is_linked = 0 THEN 'SERVER' 
-        WHEN S.name IS NOT NULL AND S.is_linked = 1 THEN 'SERVER (linked)' 
-        WHEN P.name IS NOT NULL THEN 'SERVER_PRINCIPAL' 
-        ELSE '???'  
-    END                    AS [Securable Class], 
-    CASE 
-        WHEN E.name IS NOT NULL THEN E.name 
-        WHEN S.name IS NOT NULL THEN S.name  
-        WHEN P.name IS NOT NULL THEN P.name 
-        ELSE '???'  
-    END                    AS [Securable], 
-    P1.name                AS [Grantee], 
-    P1.type_desc           AS [Grantee Type], 
-    sp.permission_name     AS [Permission], 
-    sp.state_desc          AS [State], 
-    P2.name                AS [Grantor], 
-    P2.type_desc           AS [Grantor Type], 
-R.name    AS [Role Name] 
-FROM 
-    sys.server_permissions SP 
-    INNER JOIN sys.server_principals P1 
-        ON P1.principal_id = SP.grantee_principal_id 
-    INNER JOIN sys.server_principals P2 
-        ON P2.principal_id = SP.grantor_principal_id 
- 
-    FULL OUTER JOIN sys.servers S 
-        ON  SP.class_desc = 'SERVER' 
-        AND S.server_id = SP.major_id 
- 
-    FULL OUTER JOIN sys.endpoints E 
-        ON  SP.class_desc = 'ENDPOINT' 
-        AND E.endpoint_id = SP.major_id 
- 
-    FULL OUTER JOIN sys.server_principals P 
-        ON  SP.class_desc = 'SERVER_PRINCIPAL'         
-        AND P.principal_id = SP.major_id 
- 
-FULL OUTER JOIN sys.server_role_members SRM 
-ON P.principal_id = SRM.member_principal_id 
- 
-LEFT OUTER JOIN sys.server_principals R 
-ON SRM.role_principal_id = R.principal_id 
-WHERE sp.permission_name IN ('ALTER ANY SERVER AUDIT','CONTROL SERVER','ALTER ANY DATABASE','CREATE ANY DATABASE') 
-OR R.name IN ('sysadmin','dbcreator') 
- 
-If any of the logins, roles, or role memberships returned have permissions that are not documented, or the documented audit maintainers do not have permissions, this is a finding.</RawString>
-    </Rule>
     <Rule id="V-79137" severity="medium" conversionstatus="pass" title="SRG-APP-000091-DB-000066" dscresource="None">
       <IsNullOrEmpty>False</IsNullOrEmpty>
       <OrganizationValueRequired>False</OrganizationValueRequired>
@@ -370,26 +294,7 @@ By observing the [name] and [max_rollover_files] columns, identify the row or ro
  
 If the [max_rollover_files] is greater than zero, this is not a finding. Otherwise, this is a finding.</RawString>
     </Rule>
-    <Rule id="V-79157" severity="medium" conversionstatus="pass" title="SRG-APP-000121-DB-000202" dscresource="None">
-      <IsNullOrEmpty>False</IsNullOrEmpty>
-      <OrganizationValueRequired>False</OrganizationValueRequired>
-      <OrganizationValueTestString />
-      <RawString>Check the server documentation for a list of approved users with access to SQL Server Audits. 
- 
-To create, alter, or drop a server audit, principals require the ALTER ANY SERVER AUDIT or the CONTROL SERVER permission.  To view an Audit log requires the CONTROL SERVER permission.  To use Profiler, ALTER TRACE is required. 
- 
-Review the SQL Server permissions granted to principals. Look for permissions ALTER ANY SERVER AUDIT, ALTER ANY DATABASE AUDIT, CONTROL SERVER, ALTER TRACE: 
- 
-SELECT login.name, perm.permission_name, perm.state_desc 
-FROM sys.server_permissions perm 
-JOIN sys.server_principals login 
-ON perm.grantee_principal_id = login.principal_id 
-WHERE permission_name in ('CONTROL SERVER', 'ALTER ANY DATABASE AUDIT', 'ALTER ANY SERVER AUDIT','ALTER TRACE') 
-and login.name not like '##MS_%'; 
- 
-If unauthorized accounts have these privileges, this is a finding.</RawString>
-    </Rule>
-    <Rule id="V-79159" severity="medium" conversionstatus="pass" title="SRG-APP-000122-DB-000203" dscresource="None">
+    <Rule id="V-79159" severity="medium" conversionstatus="pass" title="SRG-APP-000122-DB-000203 Duplicate" dscresource="None">
       <IsNullOrEmpty>False</IsNullOrEmpty>
       <OrganizationValueRequired>False</OrganizationValueRequired>
       <OrganizationValueTestString />
@@ -408,7 +313,7 @@ and login.name not like '##MS_%';
  
 If unauthorized accounts have these privileges, this is a finding.</RawString>
     </Rule>
-    <Rule id="V-79161" severity="medium" conversionstatus="pass" title="SRG-APP-000123-DB-000204" dscresource="None">
+    <Rule id="V-79161" severity="medium" conversionstatus="pass" title="SRG-APP-000123-DB-000204 Duplicate" dscresource="None">
       <IsNullOrEmpty>False</IsNullOrEmpty>
       <OrganizationValueRequired>False</OrganizationValueRequired>
       <OrganizationValueTestString />
@@ -578,28 +483,6 @@ If any records are returned, review the system documentation to determine whethe
 
 If it is not approved, this is a finding.</RawString>
     </Rule>
-    <Rule id="V-79183" severity="medium" conversionstatus="pass" title="SRG-APP-000141-DB-000093" dscresource="None">
-      <IsNullOrEmpty>False</IsNullOrEmpty>
-      <OrganizationValueRequired>False</OrganizationValueRequired>
-      <OrganizationValueTestString />
-      <RawString>A linked server allows for access to distributed, heterogeneous queries against OLE DB data sources. After a linked server is created, distributed queries can be run against this server, and queries can join tables from more than one data source. If the linked server is defined as an instance of SQL Server, remote stored procedures can be executed. 
- 
-To obtain a list of linked servers, execute the following command:  
- 
-EXEC sp_linkedservers;  
- 
-Review the system documentation to determine whether the linked servers listed are required and approved. If it is not approved, this is a finding. 
- 
-Run the following to get a linked server login mapping: 
- 
-SELECT s.name, p.principal_id, l.remote_name 
-FROM sys.servers s 
-JOIN sys.linked_logins l ON s.server_id = l.server_id 
-LEFT JOIN sys.server_principals p ON l.local_principal_id = p.principal_id 
-WHERE s.is_linked = 1 
- 
-Review the linked login mapping and check the remote name as it can impersonate sysadmin.  If a login in the list is impersonating sysadmin and system documentation does not require this, it is a finding.</RawString>
-    </Rule>
     <Rule id="V-79187" severity="medium" conversionstatus="pass" title="SRG-APP-000142-DB-000094" dscresource="None">
       <IsNullOrEmpty>False</IsNullOrEmpty>
       <OrganizationValueRequired>False</OrganizationValueRequired>
@@ -736,79 +619,6 @@ https://aka.ms/sqlservicepermissions
 
 If any additional permissions are granted but not documented as authorized, this is a finding.</RawString>
     </Rule>
-    <Rule id="V-79219" severity="medium" conversionstatus="pass" title="SRG-APP-000340-DB-000304" dscresource="None">
-      <IsNullOrEmpty>False</IsNullOrEmpty>
-      <OrganizationValueRequired>False</OrganizationValueRequired>
-      <OrganizationValueTestString />
-      <RawString>Review server-level securables and built-in role membership to ensure only authorized users have privileged access and the ability to create server-level objects and grant permissions to themselves or others. 
- 
-Review the system documentation to determine the required levels of protection for DBMS server securables, by type of login. 
- 
-Review the permissions in place on the server. If the actual permissions do not match the documented requirements, this is a finding. 
- 
-Get all permission assignments to logins and roles: 
- 
-SELECT DISTINCT 
-    CASE 
-        WHEN SP.class_desc IS NOT NULL THEN 
-            CASE 
-                WHEN SP.class_desc = 'SERVER' AND S.is_linked = 0 THEN 'SERVER' 
-                WHEN SP.class_desc = 'SERVER' AND S.is_linked = 1 THEN 'SERVER (linked)' 
-                ELSE SP.class_desc 
-            END 
-        WHEN E.name IS NOT NULL THEN 'ENDPOINT' 
-        WHEN S.name IS NOT NULL AND S.is_linked = 0 THEN 'SERVER' 
-        WHEN S.name IS NOT NULL AND S.is_linked = 1 THEN 'SERVER (linked)' 
-        WHEN P.name IS NOT NULL THEN 'SERVER_PRINCIPAL' 
-        ELSE '???' 
-    END                    AS [Securable Class], 
-    CASE 
-        WHEN E.name IS NOT NULL THEN E.name 
-        WHEN S.name IS NOT NULL THEN S.name 
-        WHEN P.name IS NOT NULL THEN P.name 
-        ELSE '???' 
-    END                    AS [Securable], 
-    P1.name                AS [Grantee], 
-    P1.type_desc           AS [Grantee Type], 
-    sp.permission_name     AS [Permission], 
-    sp.state_desc          AS [State], 
-    P2.name                AS [Grantor], 
-    P2.type_desc           AS [Grantor Type] 
-FROM 
-    sys.server_permissions SP 
-    INNER JOIN sys.server_principals P1 
-        ON P1.principal_id = SP.grantee_principal_id 
-    INNER JOIN sys.server_principals P2 
-        ON P2.principal_id = SP.grantor_principal_id 
- 
-    FULL OUTER JOIN sys.servers S 
-        ON  SP.class_desc = 'SERVER' 
-        AND S.server_id = SP.major_id 
- 
-    FULL OUTER JOIN sys.endpoints E 
-        ON  SP.class_desc = 'ENDPOINT' 
-        AND E.endpoint_id = SP.major_id 
- 
-    FULL OUTER JOIN sys.server_principals P 
-        ON  SP.class_desc = 'SERVER_PRINCIPAL'        
-        AND P.principal_id = SP.major_id 
- 
-Get all server role memberships: 
- 
-SELECT 
-    R.name    AS [Role], 
-    M.name    AS [Member] 
-FROM 
-    sys.server_role_members X 
-    INNER JOIN sys.server_principals R ON R.principal_id = X.role_principal_id 
-    INNER JOIN sys.server_principals M ON M.principal_id = X.member_principal_id 
- 
-The CONTROL SERVER permission is similar but not identical to the sysadmin fixed server role. Permissions do not imply role memberships and role memberships do not grant permissions. (e.g., CONTROL SERVER does not imply membership in the sysadmin fixed server role.) 
- 
-Ensure only the documented and approved logins have privileged functions in SQL Server.  
- 
-If the current configuration does not match the documented baseline, this is a finding.</RawString>
-    </Rule>
     <Rule id="V-79221" severity="medium" conversionstatus="pass" title="SRG-APP-000342-DB-000302" dscresource="None">
       <IsNullOrEmpty>False</IsNullOrEmpty>
       <OrganizationValueRequired>False</OrganizationValueRequired>
@@ -889,35 +699,6 @@ If such a procedure does not exist, this is a finding.
 If the procedure exists, review evidence that the correct time is actually maintained.  
  
 If the evidence indicates otherwise, this is a finding.</RawString>
-    </Rule>
-    <Rule id="V-79235" severity="medium" conversionstatus="pass" title="SRG-APP-000380-DB-000360" dscresource="None">
-      <IsNullOrEmpty>False</IsNullOrEmpty>
-      <OrganizationValueRequired>False</OrganizationValueRequired>
-      <OrganizationValueTestString />
-      <RawString>Obtain a list of logins who have privileged permissions and role memberships in SQL. 
- 
-Execute the following query to obtain a list of logins and roles and their respective permissions assignment: 
- 
-SELECT p.name AS Principal, 
-p.type_desc AS Type, 
-sp.permission_name AS Permission,  
-sp.state_desc AS State 
-FROM sys.server_principals p 
-INNER JOIN sys.server_permissions sp ON p.principal_id = sp.grantee_principal_id 
-WHERE sp.permission_name = 'CONTROL SERVER' 
-OR sp.state = 'W' 
- 
-Execute the following query to obtain a list of logins and their role memberships. 
- 
-SELECT m.name AS Member, 
-m.type_desc AS Type, 
-r.name AS Role 
-FROM sys.server_principals m 
-INNER JOIN sys.server_role_members rm ON m.principal_id = rm.member_principal_id 
-INNER JOIN sys.server_principals r ON rm.role_principal_id = r.principal_id 
-WHERE r.name IN ('sysadmin','securityadmin','serveradmin') 
- 
-Check the server documentation to verify the logins and roles returned are authorized. If the logins and/or roles are not documented and authorized, this is a finding.</RawString>
     </Rule>
     <Rule id="V-79237" severity="medium" conversionstatus="pass" title="SRG-APP-000380-DB-000360" dscresource="None">
       <IsNullOrEmpty>False</IsNullOrEmpty>
@@ -1079,6 +860,75 @@ WHERE a.is_state_enabled = 1 AND d.audit_action_name = 'SCHEMA_OBJECT_ACCESS_GRO
  
 If the "SCHEMA_OBJECT_ACCESS_GROUP" is not returned in an active audit, this is a finding.</RawString>
     </Rule>
+    <Rule id="V-79261" severity="medium" conversionstatus="pass" title="SRG-APP-000495-DB-000327 Duplicate" dscresource="None">
+      <IsNullOrEmpty>False</IsNullOrEmpty>
+      <OrganizationValueRequired>False</OrganizationValueRequired>
+      <OrganizationValueTestString />
+      <RawString>Check the SQL Server Audit being used for the STIG compliant audit.  
+ 
+If the following events are not included, this is a finding. 
+ 
+DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP 
+DATABASE_OBJECT_PERMISSION_CHANGE_GROUP 
+DATABASE_OWNERSHIP_CHANGE_GROUP 
+DATABASE_PERMISSION_CHANGE_GROUP 
+DATABASE_ROLE_MEMBER_CHANGE_GROUP 
+SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP 
+SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP 
+SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP 
+SERVER_OBJECT_PERMISSION_CHANGE_GROUP 
+SERVER_PERMISSION_CHANGE_GROUP 
+SERVER_ROLE_MEMBER_CHANGE_GROUP 
+ 
+Reference: 
+https://msdn.microsoft.com/en-us/library/cc280663.aspx</RawString>
+    </Rule>
+    <Rule id="V-79263" severity="medium" conversionstatus="pass" title="SRG-APP-000495-DB-000328 Duplicate" dscresource="None">
+      <IsNullOrEmpty>False</IsNullOrEmpty>
+      <OrganizationValueRequired>False</OrganizationValueRequired>
+      <OrganizationValueTestString />
+      <RawString>Check the SQL Server Audit being used for the STIG compliant audit.  
+ 
+If the following events are not included, this is a finding. 
+ 
+DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP 
+DATABASE_OBJECT_PERMISSION_CHANGE_GROUP 
+DATABASE_OWNERSHIP_CHANGE_GROUP 
+DATABASE_PERMISSION_CHANGE_GROUP 
+DATABASE_ROLE_MEMBER_CHANGE_GROUP 
+SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP 
+SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP 
+SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP 
+SERVER_OBJECT_PERMISSION_CHANGE_GROUP 
+SERVER_PERMISSION_CHANGE_GROUP 
+SERVER_ROLE_MEMBER_CHANGE_GROUP 
+ 
+Reference: 
+https://msdn.microsoft.com/en-us/library/cc280663.aspx</RawString>
+    </Rule>
+    <Rule id="V-79265" severity="medium" conversionstatus="pass" title="SRG-APP-000495-DB-000329 Duplicate" dscresource="None">
+      <IsNullOrEmpty>False</IsNullOrEmpty>
+      <OrganizationValueRequired>False</OrganizationValueRequired>
+      <OrganizationValueTestString />
+      <RawString>Check the SQL Server Audit being used for the STIG compliant audit.  
+ 
+If the following events are not included, this is a finding. 
+ 
+DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP 
+DATABASE_OBJECT_PERMISSION_CHANGE_GROUP 
+DATABASE_OWNERSHIP_CHANGE_GROUP 
+DATABASE_PERMISSION_CHANGE_GROUP 
+DATABASE_ROLE_MEMBER_CHANGE_GROUP 
+SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP 
+SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP 
+SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP 
+SERVER_OBJECT_PERMISSION_CHANGE_GROUP 
+SERVER_PERMISSION_CHANGE_GROUP 
+SERVER_ROLE_MEMBER_CHANGE_GROUP 
+ 
+Reference: 
+https://msdn.microsoft.com/en-us/library/cc280663.aspx</RawString>
+    </Rule>
     <Rule id="V-79271" severity="medium" conversionstatus="pass" title="SRG-APP-000498-DB-000346" dscresource="None">
       <IsNullOrEmpty>False</IsNullOrEmpty>
       <OrganizationValueRequired>False</OrganizationValueRequired>
@@ -1143,6 +993,52 @@ WHERE a.is_state_enabled = 1 AND d.audit_action_name = 'SCHEMA_OBJECT_ACCESS_GRO
  
 If the "SCHEMA_OBJECT_ACCESS_GROUP" is not returned in an active audit, this is a finding.</RawString>
     </Rule>
+    <Rule id="V-79275" severity="medium" conversionstatus="pass" title="SRG-APP-000499-DB-000330 Duplicate" dscresource="None">
+      <IsNullOrEmpty>False</IsNullOrEmpty>
+      <OrganizationValueRequired>False</OrganizationValueRequired>
+      <OrganizationValueTestString />
+      <RawString>Check the SQL Server Audit being used for the STIG compliant audit.  
+ 
+If the following events are not included, this is a finding. 
+ 
+DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP 
+DATABASE_OBJECT_PERMISSION_CHANGE_GROUP 
+DATABASE_OWNERSHIP_CHANGE_GROUP 
+DATABASE_PERMISSION_CHANGE_GROUP 
+DATABASE_ROLE_MEMBER_CHANGE_GROUP 
+SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP 
+SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP 
+SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP 
+SERVER_OBJECT_PERMISSION_CHANGE_GROUP 
+SERVER_PERMISSION_CHANGE_GROUP 
+SERVER_ROLE_MEMBER_CHANGE_GROUP 
+ 
+Reference: 
+https://msdn.microsoft.com/en-us/library/cc280663.aspx</RawString>
+    </Rule>
+    <Rule id="V-79277" severity="medium" conversionstatus="pass" title="SRG-APP-000499-DB-000331 Duplicate" dscresource="None">
+      <IsNullOrEmpty>False</IsNullOrEmpty>
+      <OrganizationValueRequired>False</OrganizationValueRequired>
+      <OrganizationValueTestString />
+      <RawString>Check the SQL Server Audit being used for the STIG compliant audit.  
+ 
+If the following events are not included, this is a finding. 
+ 
+DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP 
+DATABASE_OBJECT_PERMISSION_CHANGE_GROUP 
+DATABASE_OWNERSHIP_CHANGE_GROUP 
+DATABASE_PERMISSION_CHANGE_GROUP 
+DATABASE_ROLE_MEMBER_CHANGE_GROUP 
+SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP 
+SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP 
+SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP 
+SERVER_OBJECT_PERMISSION_CHANGE_GROUP 
+SERVER_PERMISSION_CHANGE_GROUP 
+SERVER_ROLE_MEMBER_CHANGE_GROUP 
+ 
+Reference: 
+https://msdn.microsoft.com/en-us/library/cc280663.aspx</RawString>
+    </Rule>
     <Rule id="V-79283" severity="medium" conversionstatus="pass" title="SRG-APP-000502-DB-000348" dscresource="None">
       <IsNullOrEmpty>False</IsNullOrEmpty>
       <OrganizationValueRequired>False</OrganizationValueRequired>
@@ -1206,6 +1102,120 @@ JOIN sys.server_audit_specification_details d ON s.server_specification_id = d.s
 WHERE a.is_state_enabled = 1 AND d.audit_action_name = 'SCHEMA_OBJECT_ACCESS_GROUP' 
  
 If the "SCHEMA_OBJECT_ACCESS_GROUP" is not returned in an active audit, this is a finding.</RawString>
+    </Rule>
+    <Rule id="V-79293" severity="medium" conversionstatus="pass" title="SRG-APP-000504-DB-000355 Duplicate" dscresource="None">
+      <IsNullOrEmpty>False</IsNullOrEmpty>
+      <OrganizationValueRequired>False</OrganizationValueRequired>
+      <OrganizationValueTestString />
+      <RawString>Determine if an audit is configured and started by executing the following query.  
+
+SELECT name AS 'Audit Name', 
+status_desc AS 'Audit Status', 
+audit_file_path AS 'Current Audit File' 
+FROM sys.dm_server_audit_status 
+
+If no records are returned, this is a finding. 
+
+Execute the following query to verify the following events are included in the server audit specification: 
+
+APPLICATION_ROLE_CHANGE_PASSWORD_GROUP 
+AUDIT_CHANGE_GROUP 
+BACKUP_RESTORE_GROUP 
+DATABASE_CHANGE_GROUP 
+DATABASE_OBJECT_CHANGE_GROUP 
+DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP 
+DATABASE_OBJECT_PERMISSION_CHANGE_GROUP 
+DATABASE_OPERATION_GROUP 
+DATABASE_OWNERSHIP_CHANGE_GROUP 
+DATABASE_PERMISSION_CHANGE_GROUP 
+DATABASE_PRINCIPAL_CHANGE_GROUP 
+DATABASE_PRINCIPAL_IMPERSONATION_GROUP 
+DATABASE_ROLE_MEMBER_CHANGE_GROUP 
+DBCC_GROUP 
+LOGIN_CHANGE_PASSWORD_GROUP 
+SCHEMA_OBJECT_CHANGE_GROUP 
+SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP 
+SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP 
+SERVER_OBJECT_CHANGE_GROUP 
+SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP 
+SERVER_OBJECT_PERMISSION_CHANGE_GROUP 
+SERVER_OPERATION_GROUP 
+SERVER_PERMISSION_CHANGE_GROUP 
+SERVER_PRINCIPAL_CHANGE_GROUP 
+SERVER_PRINCIPAL_IMPERSONATION_GROUP 
+SERVER_ROLE_MEMBER_CHANGE_GROUP 
+SERVER_STATE_CHANGE_GROUP 
+TRACE_CHANGE_GROUP 
+USER_CHANGE_PASSWORD_GROUP 
+
+SELECT a.name AS 'AuditName', 
+s.name AS 'SpecName', 
+d.audit_action_name AS 'ActionName', 
+d.audited_result AS 'Result' 
+FROM sys.server_audit_specifications s 
+JOIN sys.server_audits a ON s.audit_guid = a.audit_guid 
+JOIN sys.server_audit_specification_details d ON s.server_specification_id = d.server_specification_id 
+WHERE a.is_state_enabled = 1  
+AND d.audit_action_name IN ('APPLICATION_ROLE_CHANGE_PASSWORD_GROUP','AUDIT_CHANGE_GROUP','BACKUP_RESTORE_GROUP','DATABASE_CHANGE_GROUP','DATABASE_OBJECT_CHANGE_GROUP','DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP','DATABASE_OBJECT_PERMISSION_CHANGE_GROUP','DATABASE_OPERATION_GROUP','DATABASE_OWNERSHIP_CHANGE_GROUP','DATABASE_PERMISSION_CHANGE_GROUP','DATABASE_PRINCIPAL_CHANGE_GROUP','DATABASE_PRINCIPAL_IMPERSONATION_GROUP','DATABASE_ROLE_MEMBER_CHANGE_GROUP','DBCC_GROUP','LOGIN_CHANGE_PASSWORD_GROUP','SCHEMA_OBJECT_CHANGE_GROUP','SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP','SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP','SERVER_OBJECT_CHANGE_GROUP','SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP','SERVER_OBJECT_PERMISSION_CHANGE_GROUP','SERVER_OPERATION_GROUP','SERVER_PERMISSION_CHANGE_GROUP','SERVER_PRINCIPAL_CHANGE_GROUP','SERVER_PRINCIPAL_IMPERSONATION_GROUP','SERVER_ROLE_MEMBER_CHANGE_GROUP','SERVER_STATE_CHANGE_GROUP','TRACE_CHANGE_GROUP','USER_CHANGE_PASSWORD_GROUP') 
+
+If the identified groups are not returned, this is a finding.</RawString>
+    </Rule>
+    <Rule id="V-79295" severity="medium" conversionstatus="pass" title="SRG-APP-000505-DB-000352 Duplicate" dscresource="None">
+      <IsNullOrEmpty>False</IsNullOrEmpty>
+      <OrganizationValueRequired>False</OrganizationValueRequired>
+      <OrganizationValueTestString />
+      <RawString>Determine if an audit is configured and started by executing the following query:  
+
+SELECT name AS 'Audit Name', 
+status_desc AS 'Audit Status', 
+audit_file_path AS 'Current Audit File' 
+FROM sys.dm_server_audit_status 
+
+If no records are returned, this is a finding. 
+
+Execute the following query to verify the following events are included in the server audit specification: 
+
+APPLICATION_ROLE_CHANGE_PASSWORD_GROUP 
+AUDIT_CHANGE_GROUP 
+BACKUP_RESTORE_GROUP 
+DATABASE_CHANGE_GROUP 
+DATABASE_OBJECT_CHANGE_GROUP 
+DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP 
+DATABASE_OBJECT_PERMISSION_CHANGE_GROUP 
+DATABASE_OPERATION_GROUP 
+DATABASE_OWNERSHIP_CHANGE_GROUP 
+DATABASE_PERMISSION_CHANGE_GROUP 
+DATABASE_PRINCIPAL_CHANGE_GROUP 
+DATABASE_PRINCIPAL_IMPERSONATION_GROUP 
+DATABASE_ROLE_MEMBER_CHANGE_GROUP 
+DBCC_GROUP 
+LOGIN_CHANGE_PASSWORD_GROUP 
+SCHEMA_OBJECT_CHANGE_GROUP 
+SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP 
+SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP 
+SERVER_OBJECT_CHANGE_GROUP 
+SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP 
+SERVER_OBJECT_PERMISSION_CHANGE_GROUP 
+SERVER_OPERATION_GROUP 
+SERVER_PERMISSION_CHANGE_GROUP 
+SERVER_PRINCIPAL_CHANGE_GROUP 
+SERVER_PRINCIPAL_IMPERSONATION_GROUP 
+SERVER_ROLE_MEMBER_CHANGE_GROUP 
+SERVER_STATE_CHANGE_GROUP 
+TRACE_CHANGE_GROUP 
+USER_CHANGE_PASSWORD_GROUP 
+
+SELECT a.name AS 'AuditName', 
+s.name AS 'SpecName', 
+d.audit_action_name AS 'ActionName', 
+d.audited_result AS 'Result' 
+FROM sys.server_audit_specifications s 
+JOIN sys.server_audits a ON s.audit_guid = a.audit_guid 
+JOIN sys.server_audit_specification_details d ON s.server_specification_id = d.server_specification_id 
+WHERE a.is_state_enabled = 1  
+AND d.audit_action_name IN ('APPLICATION_ROLE_CHANGE_PASSWORD_GROUP','AUDIT_CHANGE_GROUP','BACKUP_RESTORE_GROUP','DATABASE_CHANGE_GROUP','DATABASE_OBJECT_CHANGE_GROUP','DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP','DATABASE_OBJECT_PERMISSION_CHANGE_GROUP','DATABASE_OPERATION_GROUP','DATABASE_OWNERSHIP_CHANGE_GROUP','DATABASE_PERMISSION_CHANGE_GROUP','DATABASE_PRINCIPAL_CHANGE_GROUP','DATABASE_PRINCIPAL_IMPERSONATION_GROUP','DATABASE_ROLE_MEMBER_CHANGE_GROUP','DBCC_GROUP','LOGIN_CHANGE_PASSWORD_GROUP','SCHEMA_OBJECT_CHANGE_GROUP','SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP','SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP','SERVER_OBJECT_CHANGE_GROUP','SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP','SERVER_OBJECT_PERMISSION_CHANGE_GROUP','SERVER_OPERATION_GROUP','SERVER_PERMISSION_CHANGE_GROUP','SERVER_PRINCIPAL_CHANGE_GROUP','SERVER_PRINCIPAL_IMPERSONATION_GROUP','SERVER_ROLE_MEMBER_CHANGE_GROUP','SERVER_STATE_CHANGE_GROUP','TRACE_CHANGE_GROUP','USER_CHANGE_PASSWORD_GROUP') 
+
+If the identified groups are not returned, this is a finding.</RawString>
     </Rule>
     <Rule id="V-79299" severity="medium" conversionstatus="pass" title="SRG-APP-000507-DB-000356" dscresource="None">
       <IsNullOrEmpty>False</IsNullOrEmpty>
@@ -1394,39 +1404,6 @@ FROM sys.service_broker_endpoints
 WHERE encryption_algorithm != 2
 
 If any records are returned, this is a finding.</RawString>
-    </Rule>
-    <Rule id="V-79327" severity="medium" conversionstatus="pass" title="SRG-APP-000141-DB-000093" dscresource="None">
-      <IsNullOrEmpty>False</IsNullOrEmpty>
-      <OrganizationValueRequired>False</OrganizationValueRequired>
-      <OrganizationValueTestString />
-      <RawString>Registry extended stored procedures allow Microsoft SQL Server to read, write, and enumerate values and keys in the registry. They are used by Enterprise Manager to configure the server. This rule checks that the permissions to execute registry extended stored procedures have been revoked from all users (other than dbo). 
-
-SELECT OBJECT_NAME(major_id) AS [Stored Procedure]
- ,dpr.NAME AS [Principal]
-FROM sys.database_permissions AS dp
-INNER JOIN sys.database_principals AS dpr ON dp.grantee_principal_id = dpr.principal_id
-WHERE major_id IN (
-  OBJECT_ID('xp_regaddmultistring')
-  ,OBJECT_ID('xp_regdeletekey')
-  ,OBJECT_ID('xp_regdeletevalue')
-  ,OBJECT_ID('xp_regenumvalues')
-  ,OBJECT_ID('xp_regenumkeys')
-  ,OBJECT_ID('xp_regread')
-  ,OBJECT_ID('xp_regremovemultistring')
-  ,OBJECT_ID('xp_regwrite')
-  ,OBJECT_ID('xp_instance_regaddmultistring')
-  ,OBJECT_ID('xp_instance_regdeletekey')
-  ,OBJECT_ID('xp_instance_regdeletevalue')
-  ,OBJECT_ID('xp_instance_regenumkeys')
-  ,OBJECT_ID('xp_instance_regenumvalues')
-  ,OBJECT_ID('xp_instance_regread')
-  ,OBJECT_ID('xp_instance_regremovemultistring')
-  ,OBJECT_ID('xp_instance_regwrite')
-  )
- AND dp.[type] = 'EX'
-ORDER BY dpr.NAME;
-
-If any records are returned, review the system documentation to determine whether the accessing of the registry via  extended stored procedures are required and authorized. If it is not authorized, this is a finding.</RawString>
     </Rule>
     <Rule id="V-79329" severity="medium" conversionstatus="pass" title="SRG-APP-000141-DB-000093" dscresource="None">
       <IsNullOrEmpty>False</IsNullOrEmpty>
@@ -1963,92 +1940,6 @@ If any non-authorized users have access to the SQL Server Error Log in SQL Serve
  
 If no alert exist to notify support staff in the event the SQL Audit drive reaches 75%, this is a finding.</RawString>
     </Rule>
-    <Rule id="V-79239" severity="medium" conversionstatus="pass" title="SRG-APP-000381-DB-000361" dscresource="None">
-      <IsNullOrEmpty>False</IsNullOrEmpty>
-      <OrganizationValueRequired>False</OrganizationValueRequired>
-      <OrganizationValueTestString />
-      <RawString>Determine if an audit is configured to capture denied actions and started by executing the following query: 
- 
-SELECT name AS 'Audit Name', 
-status_desc AS 'Audit Status', 
-audit_file_path AS 'Current Audit File' 
-FROM sys.dm_server_audit_status 
- 
-If no records are returned, this is a finding. 
- 
-Execute the following query to verify the following events are included in the server audit specification: 
- 
-APPLICATION_ROLE_CHANGE_PASSWORD_GROUP,  
-AUDIT_CHANGE_GROUP,  
-BACKUP_RESTORE_GROUP,  
-DATABASE_CHANGE_GROUP,  
-DATABASE_OBJECT_ACCESS_GROUP,  
-DATABASE_OBJECT_CHANGE_GROUP,  
-DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP,  
-DATABASE_OBJECT_PERMISSION_CHANGE_GROUP,  
-DATABASE_OWNERSHIP_CHANGE_GROUP, 
-DATABASE_OPERATION_GROUP,  
-DATABASE_OWNERSHIP_CHANGE_GROUP,  
-DATABASE_PERMISSION_CHANGE_GROUP,  
-DATABASE_PRINCIPAL_CHANGE_GROUP,  
-DATABASE_PRINCIPAL_IMPERSONATION_GROUP,  
-DATABASE_ROLE_MEMBER_CHANGE_GROUP,  
-DBCC_GROUP,  
-LOGIN_CHANGE_PASSWORD_GROUP,  
-SCHEMA_OBJECT_CHANGE_GROUP,  
-SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP,  
-SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP,  
-SERVER_OBJECT_CHANGE_GROUP,  
-SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP,  
-SERVER_OBJECT_PERMISSION_CHANGE_GROUP,  
-SERVER_OPERATION_GROUP,  
-SERVER_PERMISSION_CHANGE_GROUP,  
-SERVER_PRINCIPAL_IMPERSONATION_GROUP,  
-SERVER_ROLE_MEMBER_CHANGE_GROUP,  
-SERVER_STATE_CHANGE_GROUP,  
-TRACE_CHANGE_GROUP  
- 
-SELECT a.name AS 'AuditName', 
-s.name AS 'SpecName', 
-d.audit_action_name AS 'ActionName', 
-d.audited_result AS 'Result' 
-FROM sys.server_audit_specifications s 
-JOIN sys.server_audits a ON s.audit_guid = a.audit_guid 
-JOIN sys.server_audit_specification_details d ON s.server_specification_id = d.server_specification_id 
-WHERE a.is_state_enabled = 1  
-AND d.audit_action_name IN ( 
-'APPLICATION_ROLE_CHANGE_PASSWORD_GROUP', 
-'AUDIT_CHANGE_GROUP', 
-'BACKUP_RESTORE_GROUP', 
-'DATABASE_CHANGE_GROUP', 
-'DATABASE_OBJECT_ACCESS_GROUP', 
-'DATABASE_OBJECT_CHANGE_GROUP', 
-'DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP', 
-'DATABASE_OBJECT_PERMISSION_CHANGE_GROUP', 
-'DATABASE_OWNERSHIP_CHANGE_GROUP', 
-'DATABASE_OPERATION_GROUP', 
-'DATABASE_OWNERSHIP_CHANGE_GROUP', 
-'DATABASE_PERMISSION_CHANGE_GROUP', 
-'DATABASE_PRINCIPAL_CHANGE_GROUP', 
-'DATABASE_PRINCIPAL_IMPERSONATION_GROUP', 
-'DATABASE_ROLE_MEMBER_CHANGE_GROUP', 
-'DBCC_GROUP', 
-'LOGIN_CHANGE_PASSWORD_GROUP', 
-'SCHEMA_OBJECT_CHANGE_GROUP', 
-'SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP', 
-'SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP', 
-'SERVER_OBJECT_CHANGE_GROUP', 
-'SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP', 
-'SERVER_OBJECT_PERMISSION_CHANGE_GROUP', 
-'SERVER_OPERATION_GROUP', 
-'SERVER_PERMISSION_CHANGE_GROUP', 
-'SERVER_PRINCIPAL_IMPERSONATION_GROUP', 
-'SERVER_ROLE_MEMBER_CHANGE_GROUP', 
-'SERVER_STATE_CHANGE_GROUP' 
-) 
- 
-If the identified groups are not returned, this is a finding.</RawString>
-    </Rule>
     <Rule id="V-79249" severity="medium" conversionstatus="pass" title="SRG-APP-000456-DB-000390" dscresource="None">
       <IsNullOrEmpty>False</IsNullOrEmpty>
       <OrganizationValueRequired>False</OrganizationValueRequired>
@@ -2086,98 +1977,6 @@ JOIN sys.server_audit_specification_details d ON s.server_specification_id = d.s
 WHERE a.is_state_enabled = 1 AND d.audit_action_name = 'SCHEMA_OBJECT_ACCESS_GROUP' 
 
 If the "SCHEMA_OBJECT_ACCESS_GROUP" is not returned in an active audit, this is a finding.</RawString>
-    </Rule>
-    <Rule id="V-79259" severity="medium" conversionstatus="pass" title="SRG-APP-000495-DB-000326" dscresource="None">
-      <IsNullOrEmpty>False</IsNullOrEmpty>
-      <OrganizationValueRequired>False</OrganizationValueRequired>
-      <OrganizationValueTestString />
-      <RawString>Check the SQL Server Audit being used for the STIG compliant audit.  
- 
-If the following events are not included, this is a finding. 
- 
-DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP 
-DATABASE_OBJECT_PERMISSION_CHANGE_GROUP 
-DATABASE_OWNERSHIP_CHANGE_GROUP 
-DATABASE_PERMISSION_CHANGE_GROUP 
-DATABASE_ROLE_MEMBER_CHANGE_GROUP 
-SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP 
-SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP 
-SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP 
-SERVER_OBJECT_PERMISSION_CHANGE_GROUP 
-SERVER_PERMISSION_CHANGE_GROUP 
-SERVER_ROLE_MEMBER_CHANGE_GROUP 
- 
-Reference: 
-https://msdn.microsoft.com/en-us/library/cc280663.aspx</RawString>
-    </Rule>
-    <Rule id="V-79261" severity="medium" conversionstatus="pass" title="SRG-APP-000495-DB-000327" dscresource="None">
-      <IsNullOrEmpty>False</IsNullOrEmpty>
-      <OrganizationValueRequired>False</OrganizationValueRequired>
-      <OrganizationValueTestString />
-      <RawString>Check the SQL Server Audit being used for the STIG compliant audit.  
- 
-If the following events are not included, this is a finding. 
- 
-DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP 
-DATABASE_OBJECT_PERMISSION_CHANGE_GROUP 
-DATABASE_OWNERSHIP_CHANGE_GROUP 
-DATABASE_PERMISSION_CHANGE_GROUP 
-DATABASE_ROLE_MEMBER_CHANGE_GROUP 
-SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP 
-SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP 
-SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP 
-SERVER_OBJECT_PERMISSION_CHANGE_GROUP 
-SERVER_PERMISSION_CHANGE_GROUP 
-SERVER_ROLE_MEMBER_CHANGE_GROUP 
- 
-Reference: 
-https://msdn.microsoft.com/en-us/library/cc280663.aspx</RawString>
-    </Rule>
-    <Rule id="V-79263" severity="medium" conversionstatus="pass" title="SRG-APP-000495-DB-000328" dscresource="None">
-      <IsNullOrEmpty>False</IsNullOrEmpty>
-      <OrganizationValueRequired>False</OrganizationValueRequired>
-      <OrganizationValueTestString />
-      <RawString>Check the SQL Server Audit being used for the STIG compliant audit.  
- 
-If the following events are not included, this is a finding. 
- 
-DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP 
-DATABASE_OBJECT_PERMISSION_CHANGE_GROUP 
-DATABASE_OWNERSHIP_CHANGE_GROUP 
-DATABASE_PERMISSION_CHANGE_GROUP 
-DATABASE_ROLE_MEMBER_CHANGE_GROUP 
-SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP 
-SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP 
-SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP 
-SERVER_OBJECT_PERMISSION_CHANGE_GROUP 
-SERVER_PERMISSION_CHANGE_GROUP 
-SERVER_ROLE_MEMBER_CHANGE_GROUP 
- 
-Reference: 
-https://msdn.microsoft.com/en-us/library/cc280663.aspx</RawString>
-    </Rule>
-    <Rule id="V-79265" severity="medium" conversionstatus="pass" title="SRG-APP-000495-DB-000329" dscresource="None">
-      <IsNullOrEmpty>False</IsNullOrEmpty>
-      <OrganizationValueRequired>False</OrganizationValueRequired>
-      <OrganizationValueTestString />
-      <RawString>Check the SQL Server Audit being used for the STIG compliant audit.  
- 
-If the following events are not included, this is a finding. 
- 
-DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP 
-DATABASE_OBJECT_PERMISSION_CHANGE_GROUP 
-DATABASE_OWNERSHIP_CHANGE_GROUP 
-DATABASE_PERMISSION_CHANGE_GROUP 
-DATABASE_ROLE_MEMBER_CHANGE_GROUP 
-SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP 
-SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP 
-SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP 
-SERVER_OBJECT_PERMISSION_CHANGE_GROUP 
-SERVER_PERMISSION_CHANGE_GROUP 
-SERVER_ROLE_MEMBER_CHANGE_GROUP 
- 
-Reference: 
-https://msdn.microsoft.com/en-us/library/cc280663.aspx</RawString>
     </Rule>
     <Rule id="V-79267" severity="medium" conversionstatus="pass" title="SRG-APP-000496-DB-000334" dscresource="None">
       <IsNullOrEmpty>False</IsNullOrEmpty>
@@ -2230,52 +2029,6 @@ JOIN sys.server_audit_specification_details d ON s.server_specification_id = d.s
 WHERE a.is_state_enabled = 1 AND d.audit_action_name = 'SCHEMA_OBJECT_CHANGE_GROUP' 
  
 If the "SCHEMA_OBJECT_CHANGE_GROUP" is not returned in an active audit, this is a finding.</RawString>
-    </Rule>
-    <Rule id="V-79275" severity="medium" conversionstatus="pass" title="SRG-APP-000499-DB-000330" dscresource="None">
-      <IsNullOrEmpty>False</IsNullOrEmpty>
-      <OrganizationValueRequired>False</OrganizationValueRequired>
-      <OrganizationValueTestString />
-      <RawString>Check the SQL Server Audit being used for the STIG compliant audit.  
- 
-If the following events are not included, this is a finding. 
- 
-DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP 
-DATABASE_OBJECT_PERMISSION_CHANGE_GROUP 
-DATABASE_OWNERSHIP_CHANGE_GROUP 
-DATABASE_PERMISSION_CHANGE_GROUP 
-DATABASE_ROLE_MEMBER_CHANGE_GROUP 
-SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP 
-SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP 
-SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP 
-SERVER_OBJECT_PERMISSION_CHANGE_GROUP 
-SERVER_PERMISSION_CHANGE_GROUP 
-SERVER_ROLE_MEMBER_CHANGE_GROUP 
- 
-Reference: 
-https://msdn.microsoft.com/en-us/library/cc280663.aspx</RawString>
-    </Rule>
-    <Rule id="V-79277" severity="medium" conversionstatus="pass" title="SRG-APP-000499-DB-000331" dscresource="None">
-      <IsNullOrEmpty>False</IsNullOrEmpty>
-      <OrganizationValueRequired>False</OrganizationValueRequired>
-      <OrganizationValueTestString />
-      <RawString>Check the SQL Server Audit being used for the STIG compliant audit.  
- 
-If the following events are not included, this is a finding. 
- 
-DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP 
-DATABASE_OBJECT_PERMISSION_CHANGE_GROUP 
-DATABASE_OWNERSHIP_CHANGE_GROUP 
-DATABASE_PERMISSION_CHANGE_GROUP 
-DATABASE_ROLE_MEMBER_CHANGE_GROUP 
-SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP 
-SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP 
-SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP 
-SERVER_OBJECT_PERMISSION_CHANGE_GROUP 
-SERVER_PERMISSION_CHANGE_GROUP 
-SERVER_ROLE_MEMBER_CHANGE_GROUP 
- 
-Reference: 
-https://msdn.microsoft.com/en-us/library/cc280663.aspx</RawString>
     </Rule>
     <Rule id="V-79279" severity="medium" conversionstatus="pass" title="SRG-APP-000501-DB-000336" dscresource="None">
       <IsNullOrEmpty>False</IsNullOrEmpty>
@@ -2389,177 +2142,6 @@ WHERE a.is_state_enabled = 1 AND d.audit_action_name = 'FAILED_LOGIN_GROUP'
  
 If the "FAILED_LOGIN_GROUP" is not returned in an active audit, this is a finding.</RawString>
     </Rule>
-    <Rule id="V-79291" severity="medium" conversionstatus="pass" title="SRG-APP-000504-DB-000354" dscresource="None">
-      <IsNullOrEmpty>False</IsNullOrEmpty>
-      <OrganizationValueRequired>False</OrganizationValueRequired>
-      <OrganizationValueTestString />
-      <RawString>Determine if an audit is configured and started by executing the following query:  
-
-SELECT name AS 'Audit Name', 
-status_desc AS 'Audit Status', 
-audit_file_path AS 'Current Audit File' 
-FROM sys.dm_server_audit_status 
-
-If no records are returned, this is a finding. 
-
-Execute the following query to verify the following events are included in the server audit specification: 
-
-APPLICATION_ROLE_CHANGE_PASSWORD_GROUP 
-AUDIT_CHANGE_GROUP 
-BACKUP_RESTORE_GROUP 
-DATABASE_CHANGE_GROUP 
-DATABASE_OBJECT_CHANGE_GROUP 
-DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP 
-DATABASE_OBJECT_PERMISSION_CHANGE_GROUP 
-DATABASE_OPERATION_GROUP 
-DATABASE_OWNERSHIP_CHANGE_GROUP 
-DATABASE_PERMISSION_CHANGE_GROUP 
-DATABASE_PRINCIPAL_CHANGE_GROUP 
-DATABASE_PRINCIPAL_IMPERSONATION_GROUP 
-DATABASE_ROLE_MEMBER_CHANGE_GROUP 
-DBCC_GROUP 
-LOGIN_CHANGE_PASSWORD_GROUP 
-SCHEMA_OBJECT_CHANGE_GROUP 
-SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP 
-SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP 
-SERVER_OBJECT_CHANGE_GROUP 
-SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP 
-SERVER_OBJECT_PERMISSION_CHANGE_GROUP 
-SERVER_OPERATION_GROUP 
-SERVER_PERMISSION_CHANGE_GROUP 
-SERVER_PRINCIPAL_CHANGE_GROUP 
-SERVER_PRINCIPAL_IMPERSONATION_GROUP 
-SERVER_ROLE_MEMBER_CHANGE_GROUP 
-SERVER_STATE_CHANGE_GROUP 
-TRACE_CHANGE_GROUP 
-USER_CHANGE_PASSWORD_GROUP 
-
-SELECT a.name AS 'AuditName', 
-s.name AS 'SpecName', 
-d.audit_action_name AS 'ActionName', 
-d.audited_result AS 'Result' 
-FROM sys.server_audit_specifications s 
-JOIN sys.server_audits a ON s.audit_guid = a.audit_guid 
-JOIN sys.server_audit_specification_details d ON s.server_specification_id = d.server_specification_id 
-WHERE a.is_state_enabled = 1  
-AND d.audit_action_name IN ('APPLICATION_ROLE_CHANGE_PASSWORD_GROUP','AUDIT_CHANGE_GROUP','BACKUP_RESTORE_GROUP','DATABASE_CHANGE_GROUP','DATABASE_OBJECT_CHANGE_GROUP','DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP','DATABASE_OBJECT_PERMISSION_CHANGE_GROUP','DATABASE_OPERATION_GROUP','DATABASE_OWNERSHIP_CHANGE_GROUP','DATABASE_PERMISSION_CHANGE_GROUP','DATABASE_PRINCIPAL_CHANGE_GROUP','DATABASE_PRINCIPAL_IMPERSONATION_GROUP','DATABASE_ROLE_MEMBER_CHANGE_GROUP','DBCC_GROUP','LOGIN_CHANGE_PASSWORD_GROUP','SCHEMA_OBJECT_CHANGE_GROUP','SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP','SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP','SERVER_OBJECT_CHANGE_GROUP','SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP','SERVER_OBJECT_PERMISSION_CHANGE_GROUP','SERVER_OPERATION_GROUP','SERVER_PERMISSION_CHANGE_GROUP','SERVER_PRINCIPAL_CHANGE_GROUP','SERVER_PRINCIPAL_IMPERSONATION_GROUP','SERVER_ROLE_MEMBER_CHANGE_GROUP','SERVER_STATE_CHANGE_GROUP','TRACE_CHANGE_GROUP','USER_CHANGE_PASSWORD_GROUP') 
-
-If the identified groups are not returned, this is a finding.</RawString>
-    </Rule>
-    <Rule id="V-79293" severity="medium" conversionstatus="pass" title="SRG-APP-000504-DB-000355" dscresource="None">
-      <IsNullOrEmpty>False</IsNullOrEmpty>
-      <OrganizationValueRequired>False</OrganizationValueRequired>
-      <OrganizationValueTestString />
-      <RawString>Determine if an audit is configured and started by executing the following query.  
-
-SELECT name AS 'Audit Name', 
-status_desc AS 'Audit Status', 
-audit_file_path AS 'Current Audit File' 
-FROM sys.dm_server_audit_status 
-
-If no records are returned, this is a finding. 
-
-Execute the following query to verify the following events are included in the server audit specification: 
-
-APPLICATION_ROLE_CHANGE_PASSWORD_GROUP 
-AUDIT_CHANGE_GROUP 
-BACKUP_RESTORE_GROUP 
-DATABASE_CHANGE_GROUP 
-DATABASE_OBJECT_CHANGE_GROUP 
-DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP 
-DATABASE_OBJECT_PERMISSION_CHANGE_GROUP 
-DATABASE_OPERATION_GROUP 
-DATABASE_OWNERSHIP_CHANGE_GROUP 
-DATABASE_PERMISSION_CHANGE_GROUP 
-DATABASE_PRINCIPAL_CHANGE_GROUP 
-DATABASE_PRINCIPAL_IMPERSONATION_GROUP 
-DATABASE_ROLE_MEMBER_CHANGE_GROUP 
-DBCC_GROUP 
-LOGIN_CHANGE_PASSWORD_GROUP 
-SCHEMA_OBJECT_CHANGE_GROUP 
-SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP 
-SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP 
-SERVER_OBJECT_CHANGE_GROUP 
-SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP 
-SERVER_OBJECT_PERMISSION_CHANGE_GROUP 
-SERVER_OPERATION_GROUP 
-SERVER_PERMISSION_CHANGE_GROUP 
-SERVER_PRINCIPAL_CHANGE_GROUP 
-SERVER_PRINCIPAL_IMPERSONATION_GROUP 
-SERVER_ROLE_MEMBER_CHANGE_GROUP 
-SERVER_STATE_CHANGE_GROUP 
-TRACE_CHANGE_GROUP 
-USER_CHANGE_PASSWORD_GROUP 
-
-SELECT a.name AS 'AuditName', 
-s.name AS 'SpecName', 
-d.audit_action_name AS 'ActionName', 
-d.audited_result AS 'Result' 
-FROM sys.server_audit_specifications s 
-JOIN sys.server_audits a ON s.audit_guid = a.audit_guid 
-JOIN sys.server_audit_specification_details d ON s.server_specification_id = d.server_specification_id 
-WHERE a.is_state_enabled = 1  
-AND d.audit_action_name IN ('APPLICATION_ROLE_CHANGE_PASSWORD_GROUP','AUDIT_CHANGE_GROUP','BACKUP_RESTORE_GROUP','DATABASE_CHANGE_GROUP','DATABASE_OBJECT_CHANGE_GROUP','DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP','DATABASE_OBJECT_PERMISSION_CHANGE_GROUP','DATABASE_OPERATION_GROUP','DATABASE_OWNERSHIP_CHANGE_GROUP','DATABASE_PERMISSION_CHANGE_GROUP','DATABASE_PRINCIPAL_CHANGE_GROUP','DATABASE_PRINCIPAL_IMPERSONATION_GROUP','DATABASE_ROLE_MEMBER_CHANGE_GROUP','DBCC_GROUP','LOGIN_CHANGE_PASSWORD_GROUP','SCHEMA_OBJECT_CHANGE_GROUP','SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP','SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP','SERVER_OBJECT_CHANGE_GROUP','SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP','SERVER_OBJECT_PERMISSION_CHANGE_GROUP','SERVER_OPERATION_GROUP','SERVER_PERMISSION_CHANGE_GROUP','SERVER_PRINCIPAL_CHANGE_GROUP','SERVER_PRINCIPAL_IMPERSONATION_GROUP','SERVER_ROLE_MEMBER_CHANGE_GROUP','SERVER_STATE_CHANGE_GROUP','TRACE_CHANGE_GROUP','USER_CHANGE_PASSWORD_GROUP') 
-
-If the identified groups are not returned, this is a finding.</RawString>
-    </Rule>
-    <Rule id="V-79295" severity="medium" conversionstatus="pass" title="SRG-APP-000505-DB-000352" dscresource="None">
-      <IsNullOrEmpty>False</IsNullOrEmpty>
-      <OrganizationValueRequired>False</OrganizationValueRequired>
-      <OrganizationValueTestString />
-      <RawString>Determine if an audit is configured and started by executing the following query:  
-
-SELECT name AS 'Audit Name', 
-status_desc AS 'Audit Status', 
-audit_file_path AS 'Current Audit File' 
-FROM sys.dm_server_audit_status 
-
-If no records are returned, this is a finding. 
-
-Execute the following query to verify the following events are included in the server audit specification: 
-
-APPLICATION_ROLE_CHANGE_PASSWORD_GROUP 
-AUDIT_CHANGE_GROUP 
-BACKUP_RESTORE_GROUP 
-DATABASE_CHANGE_GROUP 
-DATABASE_OBJECT_CHANGE_GROUP 
-DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP 
-DATABASE_OBJECT_PERMISSION_CHANGE_GROUP 
-DATABASE_OPERATION_GROUP 
-DATABASE_OWNERSHIP_CHANGE_GROUP 
-DATABASE_PERMISSION_CHANGE_GROUP 
-DATABASE_PRINCIPAL_CHANGE_GROUP 
-DATABASE_PRINCIPAL_IMPERSONATION_GROUP 
-DATABASE_ROLE_MEMBER_CHANGE_GROUP 
-DBCC_GROUP 
-LOGIN_CHANGE_PASSWORD_GROUP 
-SCHEMA_OBJECT_CHANGE_GROUP 
-SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP 
-SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP 
-SERVER_OBJECT_CHANGE_GROUP 
-SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP 
-SERVER_OBJECT_PERMISSION_CHANGE_GROUP 
-SERVER_OPERATION_GROUP 
-SERVER_PERMISSION_CHANGE_GROUP 
-SERVER_PRINCIPAL_CHANGE_GROUP 
-SERVER_PRINCIPAL_IMPERSONATION_GROUP 
-SERVER_ROLE_MEMBER_CHANGE_GROUP 
-SERVER_STATE_CHANGE_GROUP 
-TRACE_CHANGE_GROUP 
-USER_CHANGE_PASSWORD_GROUP 
-
-SELECT a.name AS 'AuditName', 
-s.name AS 'SpecName', 
-d.audit_action_name AS 'ActionName', 
-d.audited_result AS 'Result' 
-FROM sys.server_audit_specifications s 
-JOIN sys.server_audits a ON s.audit_guid = a.audit_guid 
-JOIN sys.server_audit_specification_details d ON s.server_specification_id = d.server_specification_id 
-WHERE a.is_state_enabled = 1  
-AND d.audit_action_name IN ('APPLICATION_ROLE_CHANGE_PASSWORD_GROUP','AUDIT_CHANGE_GROUP','BACKUP_RESTORE_GROUP','DATABASE_CHANGE_GROUP','DATABASE_OBJECT_CHANGE_GROUP','DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP','DATABASE_OBJECT_PERMISSION_CHANGE_GROUP','DATABASE_OPERATION_GROUP','DATABASE_OWNERSHIP_CHANGE_GROUP','DATABASE_PERMISSION_CHANGE_GROUP','DATABASE_PRINCIPAL_CHANGE_GROUP','DATABASE_PRINCIPAL_IMPERSONATION_GROUP','DATABASE_ROLE_MEMBER_CHANGE_GROUP','DBCC_GROUP','LOGIN_CHANGE_PASSWORD_GROUP','SCHEMA_OBJECT_CHANGE_GROUP','SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP','SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP','SERVER_OBJECT_CHANGE_GROUP','SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP','SERVER_OBJECT_PERMISSION_CHANGE_GROUP','SERVER_OPERATION_GROUP','SERVER_PERMISSION_CHANGE_GROUP','SERVER_PRINCIPAL_CHANGE_GROUP','SERVER_PRINCIPAL_IMPERSONATION_GROUP','SERVER_ROLE_MEMBER_CHANGE_GROUP','SERVER_STATE_CHANGE_GROUP','TRACE_CHANGE_GROUP','USER_CHANGE_PASSWORD_GROUP') 
-
-If the identified groups are not returned, this is a finding.</RawString>
-    </Rule>
     <Rule id="V-79297" severity="medium" conversionstatus="pass" title="SRG-APP-000506-DB-000353" dscresource="None">
       <IsNullOrEmpty>False</IsNullOrEmpty>
       <OrganizationValueRequired>False</OrganizationValueRequired>
@@ -2627,7 +2209,440 @@ Click Start &gt;&gt; Type "Local Security Policy" &gt;&gt; Press Enter &gt;&gt; 
 
 If  "System Cryptography:  Use FIPS compliant algorithms for encryption, hashing, and signing" is not enabled, this is a finding.</RawString>
     </Rule>
-    <Rule id="V-79317" severity="medium" conversionstatus="pass" title="SRG-APP-000033-DB-000084" dscresource="None">
+    <Rule id="V-79357" severity="high" conversionstatus="pass" title="SRG-APP-000178-DB-000083" dscresource="None">
+      <IsNullOrEmpty>False</IsNullOrEmpty>
+      <OrganizationValueRequired>False</OrganizationValueRequired>
+      <OrganizationValueTestString />
+      <RawString>Determine whether any applications that access the database allow for entry of the account name and password, or PIN.
+
+If any do, determine whether these applications obfuscate authentication data; if they do not, this is a finding.</RawString>
+    </Rule>
+  </ManualRule>
+  <SqlScriptQueryRule dscresourcemodule="SqlServerDsc">
+    <Rule id="V-79129" severity="high" conversionstatus="fail" title="SRG-APP-000080-DB-000063" dscresource="SqlScriptQuery">
+      <GetScript>SELECT * FROM fn_my_permissions(NULL,NULL)</GetScript>
+      <IsNullOrEmpty>False</IsNullOrEmpty>
+      <OrganizationValueRequired>False</OrganizationValueRequired>
+      <OrganizationValueTestString />
+      <RawString>Execute the following query to list permissions granted to NT AUTHORITY\SYSTEM (SYSTEM):
+EXECUTE AS LOGIN = 'NT AUTHORITY\SYSTEM'
+SELECT * FROM fn_my_permissions(NULL,NULL)
+REVERT
+If any permissions have been granted to SYSTEM beyond "CONNECT SQL" and "VIEW ANY DATABASE", this is a finding.</RawString>
+      <SetScript />
+      <TestScript>SELECT * FROM fn_my_permissions(NULL,NULL)</TestScript>
+    </Rule>
+    <Rule id="V-79135" severity="medium" conversionstatus="pass" title="SRG-APP-000090-DB-000065" dscresource="SqlScriptQuery">
+      <GetScript>ALTER ANY SERVER AUDIT ALTER ANY DATABASE Use the following query to determine the roles and logins that have the listed permissions:</GetScript>
+      <IsNullOrEmpty>False</IsNullOrEmpty>
+      <OrganizationValueRequired>False</OrganizationValueRequired>
+      <OrganizationValueTestString />
+      <RawString>Obtain the list of approved audit maintainers from the system documentation. 
+ 
+Review the server roles and individual logins that have the following role memberships, all of which enable the ability to create and maintain audit definitions. 
+ 
+sysadmin 
+dbcreator 
+ 
+Review the server roles and individual logins that have the following permissions, all of which enable the ability to create and maintain audit definitions. 
+ 
+ALTER ANY SERVER AUDIT  
+CONTROL SERVER  
+ALTER ANY DATABASE  
+CREATE ANY DATABASE 
+ 
+Use the following query to determine the roles and logins that have the listed permissions: 
+ 
+SELECT-- DISTINCT 
+    CASE 
+        WHEN SP.class_desc IS NOT NULL THEN  
+            CASE 
+                WHEN SP.class_desc = 'SERVER' AND S.is_linked = 0 THEN 'SERVER' 
+                WHEN SP.class_desc = 'SERVER' AND S.is_linked = 1 THEN 'SERVER (linked)' 
+                ELSE SP.class_desc 
+            END 
+        WHEN E.name IS NOT NULL THEN 'ENDPOINT' 
+        WHEN S.name IS NOT NULL AND S.is_linked = 0 THEN 'SERVER' 
+        WHEN S.name IS NOT NULL AND S.is_linked = 1 THEN 'SERVER (linked)' 
+        WHEN P.name IS NOT NULL THEN 'SERVER_PRINCIPAL' 
+        ELSE '???'  
+    END                    AS [Securable Class], 
+    CASE 
+        WHEN E.name IS NOT NULL THEN E.name 
+        WHEN S.name IS NOT NULL THEN S.name  
+        WHEN P.name IS NOT NULL THEN P.name 
+        ELSE '???'  
+    END                    AS [Securable], 
+    P1.name                AS [Grantee], 
+    P1.type_desc           AS [Grantee Type], 
+    sp.permission_name     AS [Permission], 
+    sp.state_desc          AS [State], 
+    P2.name                AS [Grantor], 
+    P2.type_desc           AS [Grantor Type], 
+R.name    AS [Role Name] 
+FROM 
+    sys.server_permissions SP 
+    INNER JOIN sys.server_principals P1 
+        ON P1.principal_id = SP.grantee_principal_id 
+    INNER JOIN sys.server_principals P2 
+        ON P2.principal_id = SP.grantor_principal_id 
+ 
+    FULL OUTER JOIN sys.servers S 
+        ON  SP.class_desc = 'SERVER' 
+        AND S.server_id = SP.major_id 
+ 
+    FULL OUTER JOIN sys.endpoints E 
+        ON  SP.class_desc = 'ENDPOINT' 
+        AND E.endpoint_id = SP.major_id 
+ 
+    FULL OUTER JOIN sys.server_principals P 
+        ON  SP.class_desc = 'SERVER_PRINCIPAL'         
+        AND P.principal_id = SP.major_id 
+ 
+FULL OUTER JOIN sys.server_role_members SRM 
+ON P.principal_id = SRM.member_principal_id 
+ 
+LEFT OUTER JOIN sys.server_principals R 
+ON SRM.role_principal_id = R.principal_id 
+WHERE sp.permission_name IN ('ALTER ANY SERVER AUDIT','CONTROL SERVER','ALTER ANY DATABASE','CREATE ANY DATABASE') 
+OR R.name IN ('sysadmin','dbcreator') 
+ 
+If any of the logins, roles, or role memberships returned have permissions that are not documented, or the documented audit maintainers do not have permissions, this is a finding.</RawString>
+      <SetScript>Use REVOKE and/or DENY and/or ALTER SERVER ROLE ... DROP MEMBER ... statements to remove the ALTER ANY SERVER AUDIT permission from all logins.  Then, for each authorized login, run the statement: ALTER SERVER ROLE SERVER_AUDIT_MAINTAINERS ADD MEMBER;</SetScript>
+      <TestScript>ALTER ANY SERVER AUDIT ALTER ANY DATABASE Use the following query to determine the roles and logins that have the listed permissions:</TestScript>
+    </Rule>
+    <Rule id="V-79157" severity="medium" conversionstatus="pass" title="SRG-APP-000121-DB-000202" dscresource="SqlScriptQuery">
+      <GetScript>SELECT login.name, perm.permission_name, perm.state_desc FROM sys.server_permissions perm JOIN sys.server_principals login</GetScript>
+      <IsNullOrEmpty>False</IsNullOrEmpty>
+      <OrganizationValueRequired>False</OrganizationValueRequired>
+      <OrganizationValueTestString />
+      <RawString>Check the server documentation for a list of approved users with access to SQL Server Audits. 
+ 
+To create, alter, or drop a server audit, principals require the ALTER ANY SERVER AUDIT or the CONTROL SERVER permission.  To view an Audit log requires the CONTROL SERVER permission.  To use Profiler, ALTER TRACE is required. 
+ 
+Review the SQL Server permissions granted to principals. Look for permissions ALTER ANY SERVER AUDIT, ALTER ANY DATABASE AUDIT, CONTROL SERVER, ALTER TRACE: 
+ 
+SELECT login.name, perm.permission_name, perm.state_desc 
+FROM sys.server_permissions perm 
+JOIN sys.server_principals login 
+ON perm.grantee_principal_id = login.principal_id 
+WHERE permission_name in ('CONTROL SERVER', 'ALTER ANY DATABASE AUDIT', 'ALTER ANY SERVER AUDIT','ALTER TRACE') 
+and login.name not like '##MS_%'; 
+ 
+If unauthorized accounts have these privileges, this is a finding.</RawString>
+      <SetScript>USE master;</SetScript>
+      <TestScript>SELECT login.name, perm.permission_name, perm.state_desc FROM sys.server_permissions perm JOIN sys.server_principals login</TestScript>
+    </Rule>
+    <Rule id="V-79183" severity="medium" conversionstatus="fail" title="SRG-APP-000141-DB-000093" dscresource="SqlScriptQuery">
+      <GetScript>SELECT s.name, p.principal_id, l.remote_name FROM sys.servers s JOIN sys.linked_logins l ON s.server_id = l.server_id LEFT JOIN sys.server_principals p ON l.local_principal_id = p.principal_id WHERE s.is_linked = 1</GetScript>
+      <IsNullOrEmpty>False</IsNullOrEmpty>
+      <OrganizationValueRequired>False</OrganizationValueRequired>
+      <OrganizationValueTestString />
+      <RawString>A linked server allows for access to distributed, heterogeneous queries against OLE DB data sources. After a linked server is created, distributed queries can be run against this server, and queries can join tables from more than one data source. If the linked server is defined as an instance of SQL Server, remote stored procedures can be executed. 
+ 
+To obtain a list of linked servers, execute the following command:  
+ 
+EXEC sp_linkedservers;  
+ 
+Review the system documentation to determine whether the linked servers listed are required and approved. If it is not approved, this is a finding. 
+ 
+Run the following to get a linked server login mapping: 
+ 
+SELECT s.name, p.principal_id, l.remote_name 
+FROM sys.servers s 
+JOIN sys.linked_logins l ON s.server_id = l.server_id 
+LEFT JOIN sys.server_principals p ON l.local_principal_id = p.principal_id 
+WHERE s.is_linked = 1 
+ 
+Review the linked login mapping and check the remote name as it can impersonate sysadmin.  If a login in the list is impersonating sysadmin and system documentation does not require this, it is a finding.</RawString>
+      <SetScript />
+      <TestScript>SELECT s.name, p.principal_id, l.remote_name FROM sys.servers s JOIN sys.linked_logins l ON s.server_id = l.server_id LEFT JOIN sys.server_principals p ON l.local_principal_id = p.principal_id WHERE s.is_linked = 1</TestScript>
+    </Rule>
+    <Rule id="V-79219" severity="medium" conversionstatus="fail" title="SRG-APP-000340-DB-000304" dscresource="SqlScriptQuery">
+      <GetScript>SELECT DISTINCT</GetScript>
+      <IsNullOrEmpty>False</IsNullOrEmpty>
+      <OrganizationValueRequired>False</OrganizationValueRequired>
+      <OrganizationValueTestString />
+      <RawString>Review server-level securables and built-in role membership to ensure only authorized users have privileged access and the ability to create server-level objects and grant permissions to themselves or others. 
+ 
+Review the system documentation to determine the required levels of protection for DBMS server securables, by type of login. 
+ 
+Review the permissions in place on the server. If the actual permissions do not match the documented requirements, this is a finding. 
+ 
+Get all permission assignments to logins and roles: 
+ 
+SELECT DISTINCT 
+    CASE 
+        WHEN SP.class_desc IS NOT NULL THEN 
+            CASE 
+                WHEN SP.class_desc = 'SERVER' AND S.is_linked = 0 THEN 'SERVER' 
+                WHEN SP.class_desc = 'SERVER' AND S.is_linked = 1 THEN 'SERVER (linked)' 
+                ELSE SP.class_desc 
+            END 
+        WHEN E.name IS NOT NULL THEN 'ENDPOINT' 
+        WHEN S.name IS NOT NULL AND S.is_linked = 0 THEN 'SERVER' 
+        WHEN S.name IS NOT NULL AND S.is_linked = 1 THEN 'SERVER (linked)' 
+        WHEN P.name IS NOT NULL THEN 'SERVER_PRINCIPAL' 
+        ELSE '???' 
+    END                    AS [Securable Class], 
+    CASE 
+        WHEN E.name IS NOT NULL THEN E.name 
+        WHEN S.name IS NOT NULL THEN S.name 
+        WHEN P.name IS NOT NULL THEN P.name 
+        ELSE '???' 
+    END                    AS [Securable], 
+    P1.name                AS [Grantee], 
+    P1.type_desc           AS [Grantee Type], 
+    sp.permission_name     AS [Permission], 
+    sp.state_desc          AS [State], 
+    P2.name                AS [Grantor], 
+    P2.type_desc           AS [Grantor Type] 
+FROM 
+    sys.server_permissions SP 
+    INNER JOIN sys.server_principals P1 
+        ON P1.principal_id = SP.grantee_principal_id 
+    INNER JOIN sys.server_principals P2 
+        ON P2.principal_id = SP.grantor_principal_id 
+ 
+    FULL OUTER JOIN sys.servers S 
+        ON  SP.class_desc = 'SERVER' 
+        AND S.server_id = SP.major_id 
+ 
+    FULL OUTER JOIN sys.endpoints E 
+        ON  SP.class_desc = 'ENDPOINT' 
+        AND E.endpoint_id = SP.major_id 
+ 
+    FULL OUTER JOIN sys.server_principals P 
+        ON  SP.class_desc = 'SERVER_PRINCIPAL'        
+        AND P.principal_id = SP.major_id 
+ 
+Get all server role memberships: 
+ 
+SELECT 
+    R.name    AS [Role], 
+    M.name    AS [Member] 
+FROM 
+    sys.server_role_members X 
+    INNER JOIN sys.server_principals R ON R.principal_id = X.role_principal_id 
+    INNER JOIN sys.server_principals M ON M.principal_id = X.member_principal_id 
+ 
+The CONTROL SERVER permission is similar but not identical to the sysadmin fixed server role. Permissions do not imply role memberships and role memberships do not grant permissions. (e.g., CONTROL SERVER does not imply membership in the sysadmin fixed server role.) 
+ 
+Ensure only the documented and approved logins have privileged functions in SQL Server.  
+ 
+If the current configuration does not match the documented baseline, this is a finding.</RawString>
+      <SetScript />
+      <TestScript>SELECT DISTINCT</TestScript>
+    </Rule>
+    <Rule id="V-79235" severity="medium" conversionstatus="pass" title="SRG-APP-000380-DB-000360" dscresource="SqlScriptQuery">
+      <GetScript>SELECT p.name AS Principal, p.type_desc AS Type, sp.permission_name AS Permission, sp.state_desc AS State FROM sys.server_principals p INNER JOIN sys.server_permissions sp ON p.principal_id = sp.grantee_principal_id WHERE sp.permission_name = 'CONTROL SERVER' SELECT m.name AS Member, m.type_desc AS Type, r.name AS Role FROM sys.server_principals m INNER JOIN sys.server_role_members rm ON m.principal_id = rm.member_principal_id INNER JOIN sys.server_principals r ON rm.role_principal_id = r.principal_id WHERE r.name IN ('sysadmin','securityadmin','serveradmin')</GetScript>
+      <IsNullOrEmpty>False</IsNullOrEmpty>
+      <OrganizationValueRequired>False</OrganizationValueRequired>
+      <OrganizationValueTestString />
+      <RawString>Obtain a list of logins who have privileged permissions and role memberships in SQL. 
+ 
+Execute the following query to obtain a list of logins and roles and their respective permissions assignment: 
+ 
+SELECT p.name AS Principal, 
+p.type_desc AS Type, 
+sp.permission_name AS Permission,  
+sp.state_desc AS State 
+FROM sys.server_principals p 
+INNER JOIN sys.server_permissions sp ON p.principal_id = sp.grantee_principal_id 
+WHERE sp.permission_name = 'CONTROL SERVER' 
+OR sp.state = 'W' 
+ 
+Execute the following query to obtain a list of logins and their role memberships. 
+ 
+SELECT m.name AS Member, 
+m.type_desc AS Type, 
+r.name AS Role 
+FROM sys.server_principals m 
+INNER JOIN sys.server_role_members rm ON m.principal_id = rm.member_principal_id 
+INNER JOIN sys.server_principals r ON rm.role_principal_id = r.principal_id 
+WHERE r.name IN ('sysadmin','securityadmin','serveradmin') 
+ 
+Check the server documentation to verify the logins and roles returned are authorized. If the logins and/or roles are not documented and authorized, this is a finding.</RawString>
+      <SetScript>ALTER SERVER ROLE DROP MEMBER login;</SetScript>
+      <TestScript>SELECT p.name AS Principal, p.type_desc AS Type, sp.permission_name AS Permission, sp.state_desc AS State FROM sys.server_principals p INNER JOIN sys.server_permissions sp ON p.principal_id = sp.grantee_principal_id WHERE sp.permission_name = 'CONTROL SERVER' SELECT m.name AS Member, m.type_desc AS Type, r.name AS Role FROM sys.server_principals m INNER JOIN sys.server_role_members rm ON m.principal_id = rm.member_principal_id INNER JOIN sys.server_principals r ON rm.role_principal_id = r.principal_id WHERE r.name IN ('sysadmin','securityadmin','serveradmin')</TestScript>
+    </Rule>
+    <Rule id="V-79239" severity="medium" conversionstatus="pass" title="SRG-APP-000381-DB-000361" dscresource="SqlScriptQuery">
+      <GetScript>SELECT name AS 'Audit Name', status_desc AS 'Audit Status', audit_file_path AS 'Current Audit File' FROM sys.dm_server_audit_status If no records are returned, this is a finding. Execute the following query to verify the following events are included in the server audit specification: APPLICATION_ROLE_CHANGE_PASSWORD_GROUP, AUDIT_CHANGE_GROUP, BACKUP_RESTORE_GROUP, DATABASE_CHANGE_GROUP, DATABASE_OBJECT_ACCESS_GROUP, DATABASE_OBJECT_CHANGE_GROUP, DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP, DATABASE_OBJECT_PERMISSION_CHANGE_GROUP, DATABASE_OWNERSHIP_CHANGE_GROUP, DATABASE_OPERATION_GROUP, DATABASE_OWNERSHIP_CHANGE_GROUP, DATABASE_PERMISSION_CHANGE_GROUP, DATABASE_PRINCIPAL_CHANGE_GROUP, DATABASE_PRINCIPAL_IMPERSONATION_GROUP, DATABASE_ROLE_MEMBER_CHANGE_GROUP, DBCC_GROUP, LOGIN_CHANGE_PASSWORD_GROUP, SCHEMA_OBJECT_CHANGE_GROUP, SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP, SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP, SERVER_OBJECT_CHANGE_GROUP, SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP, SERVER_OBJECT_PERMISSION_CHANGE_GROUP, SERVER_OPERATION_GROUP, SERVER_PERMISSION_CHANGE_GROUP, SERVER_PRINCIPAL_IMPERSONATION_GROUP, SERVER_ROLE_MEMBER_CHANGE_GROUP, SERVER_STATE_CHANGE_GROUP, TRACE_CHANGE_GROUP ;</GetScript>
+      <IsNullOrEmpty>False</IsNullOrEmpty>
+      <OrganizationValueRequired>False</OrganizationValueRequired>
+      <OrganizationValueTestString />
+      <RawString>Determine if an audit is configured to capture denied actions and started by executing the following query: 
+ 
+SELECT name AS 'Audit Name', 
+status_desc AS 'Audit Status', 
+audit_file_path AS 'Current Audit File' 
+FROM sys.dm_server_audit_status 
+ 
+If no records are returned, this is a finding. 
+ 
+Execute the following query to verify the following events are included in the server audit specification: 
+ 
+APPLICATION_ROLE_CHANGE_PASSWORD_GROUP,  
+AUDIT_CHANGE_GROUP,  
+BACKUP_RESTORE_GROUP,  
+DATABASE_CHANGE_GROUP,  
+DATABASE_OBJECT_ACCESS_GROUP,  
+DATABASE_OBJECT_CHANGE_GROUP,  
+DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP,  
+DATABASE_OBJECT_PERMISSION_CHANGE_GROUP,  
+DATABASE_OWNERSHIP_CHANGE_GROUP, 
+DATABASE_OPERATION_GROUP,  
+DATABASE_OWNERSHIP_CHANGE_GROUP,  
+DATABASE_PERMISSION_CHANGE_GROUP,  
+DATABASE_PRINCIPAL_CHANGE_GROUP,  
+DATABASE_PRINCIPAL_IMPERSONATION_GROUP,  
+DATABASE_ROLE_MEMBER_CHANGE_GROUP,  
+DBCC_GROUP,  
+LOGIN_CHANGE_PASSWORD_GROUP,  
+SCHEMA_OBJECT_CHANGE_GROUP,  
+SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP,  
+SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP,  
+SERVER_OBJECT_CHANGE_GROUP,  
+SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP,  
+SERVER_OBJECT_PERMISSION_CHANGE_GROUP,  
+SERVER_OPERATION_GROUP,  
+SERVER_PERMISSION_CHANGE_GROUP,  
+SERVER_PRINCIPAL_IMPERSONATION_GROUP,  
+SERVER_ROLE_MEMBER_CHANGE_GROUP,  
+SERVER_STATE_CHANGE_GROUP,  
+TRACE_CHANGE_GROUP  
+ 
+SELECT a.name AS 'AuditName', 
+s.name AS 'SpecName', 
+d.audit_action_name AS 'ActionName', 
+d.audited_result AS 'Result' 
+FROM sys.server_audit_specifications s 
+JOIN sys.server_audits a ON s.audit_guid = a.audit_guid 
+JOIN sys.server_audit_specification_details d ON s.server_specification_id = d.server_specification_id 
+WHERE a.is_state_enabled = 1  
+AND d.audit_action_name IN ( 
+'APPLICATION_ROLE_CHANGE_PASSWORD_GROUP', 
+'AUDIT_CHANGE_GROUP', 
+'BACKUP_RESTORE_GROUP', 
+'DATABASE_CHANGE_GROUP', 
+'DATABASE_OBJECT_ACCESS_GROUP', 
+'DATABASE_OBJECT_CHANGE_GROUP', 
+'DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP', 
+'DATABASE_OBJECT_PERMISSION_CHANGE_GROUP', 
+'DATABASE_OWNERSHIP_CHANGE_GROUP', 
+'DATABASE_OPERATION_GROUP', 
+'DATABASE_OWNERSHIP_CHANGE_GROUP', 
+'DATABASE_PERMISSION_CHANGE_GROUP', 
+'DATABASE_PRINCIPAL_CHANGE_GROUP', 
+'DATABASE_PRINCIPAL_IMPERSONATION_GROUP', 
+'DATABASE_ROLE_MEMBER_CHANGE_GROUP', 
+'DBCC_GROUP', 
+'LOGIN_CHANGE_PASSWORD_GROUP', 
+'SCHEMA_OBJECT_CHANGE_GROUP', 
+'SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP', 
+'SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP', 
+'SERVER_OBJECT_CHANGE_GROUP', 
+'SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP', 
+'SERVER_OBJECT_PERMISSION_CHANGE_GROUP', 
+'SERVER_OPERATION_GROUP', 
+'SERVER_PERMISSION_CHANGE_GROUP', 
+'SERVER_PRINCIPAL_IMPERSONATION_GROUP', 
+'SERVER_ROLE_MEMBER_CHANGE_GROUP', 
+'SERVER_STATE_CHANGE_GROUP' 
+) 
+ 
+If the identified groups are not returned, this is a finding.</RawString>
+      <SetScript>CREATE AUDIT</SetScript>
+      <TestScript>SELECT name AS 'Audit Name', status_desc AS 'Audit Status', audit_file_path AS 'Current Audit File' FROM sys.dm_server_audit_status If no records are returned, this is a finding. Execute the following query to verify the following events are included in the server audit specification: APPLICATION_ROLE_CHANGE_PASSWORD_GROUP, AUDIT_CHANGE_GROUP, BACKUP_RESTORE_GROUP, DATABASE_CHANGE_GROUP, DATABASE_OBJECT_ACCESS_GROUP, DATABASE_OBJECT_CHANGE_GROUP, DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP, DATABASE_OBJECT_PERMISSION_CHANGE_GROUP, DATABASE_OWNERSHIP_CHANGE_GROUP, DATABASE_OPERATION_GROUP, DATABASE_OWNERSHIP_CHANGE_GROUP, DATABASE_PERMISSION_CHANGE_GROUP, DATABASE_PRINCIPAL_CHANGE_GROUP, DATABASE_PRINCIPAL_IMPERSONATION_GROUP, DATABASE_ROLE_MEMBER_CHANGE_GROUP, DBCC_GROUP, LOGIN_CHANGE_PASSWORD_GROUP, SCHEMA_OBJECT_CHANGE_GROUP, SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP, SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP, SERVER_OBJECT_CHANGE_GROUP, SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP, SERVER_OBJECT_PERMISSION_CHANGE_GROUP, SERVER_OPERATION_GROUP, SERVER_PERMISSION_CHANGE_GROUP, SERVER_PRINCIPAL_IMPERSONATION_GROUP, SERVER_ROLE_MEMBER_CHANGE_GROUP, SERVER_STATE_CHANGE_GROUP, TRACE_CHANGE_GROUP ;</TestScript>
+    </Rule>
+    <Rule id="V-79259" severity="medium" conversionstatus="pass" title="SRG-APP-000495-DB-000326" dscresource="SqlScriptQuery">
+      <GetScript>u;</GetScript>
+      <IsNullOrEmpty>False</IsNullOrEmpty>
+      <OrganizationValueRequired>False</OrganizationValueRequired>
+      <OrganizationValueTestString />
+      <RawString>Check the SQL Server Audit being used for the STIG compliant audit.  
+ 
+If the following events are not included, this is a finding. 
+ 
+DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP 
+DATABASE_OBJECT_PERMISSION_CHANGE_GROUP 
+DATABASE_OWNERSHIP_CHANGE_GROUP 
+DATABASE_PERMISSION_CHANGE_GROUP 
+DATABASE_ROLE_MEMBER_CHANGE_GROUP 
+SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP 
+SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP 
+SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP 
+SERVER_OBJECT_PERMISSION_CHANGE_GROUP 
+SERVER_PERMISSION_CHANGE_GROUP 
+SERVER_ROLE_MEMBER_CHANGE_GROUP 
+ 
+Reference: 
+https://msdn.microsoft.com/en-us/library/cc280663.aspx</RawString>
+      <SetScript>CREATE AUDIT</SetScript>
+      <TestScript>u;</TestScript>
+    </Rule>
+    <Rule id="V-79291" severity="medium" conversionstatus="pass" title="SRG-APP-000504-DB-000354" dscresource="SqlScriptQuery">
+      <GetScript>SELECT name AS 'Audit Name', status_desc AS 'Audit Status', audit_file_path AS 'Current Audit File' FROM sys.dm_server_audit_status If no records are returned, this is a finding. Execute the following query to verify the following events are included in the server audit specification: APPLICATION_ROLE_CHANGE_PASSWORD_GROUP AUDIT_CHANGE_GROUP BACKUP_RESTORE_GROUP DATABASE_CHANGE_GROUP DATABASE_OBJECT_CHANGE_GROUP DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP DATABASE_OBJECT_PERMISSION_CHANGE_GROUP DATABASE_OPERATION_GROUP DATABASE_OWNERSHIP_CHANGE_GROUP DATABASE_PERMISSION_CHANGE_GROUP DATABASE_PRINCIPAL_CHANGE_GROUP DATABASE_PRINCIPAL_IMPERSONATION_GROUP DATABASE_ROLE_MEMBER_CHANGE_GROUP DBCC_GROUP LOGIN_CHANGE_PASSWORD_GROUP SCHEMA_OBJECT_CHANGE_GROUP SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP SERVER_OBJECT_CHANGE_GROUP SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP SERVER_OBJECT_PERMISSION_CHANGE_GROUP SERVER_OPERATION_GROUP SERVER_PERMISSION_CHANGE_GROUP SERVER_PRINCIPAL_CHANGE_GROUP SERVER_PRINCIPAL_IMPERSONATION_GROUP SERVER_ROLE_MEMBER_CHANGE_GROUP SERVER_STATE_CHANGE_GROUP TRACE_CHANGE_GROUP ;</GetScript>
+      <IsNullOrEmpty>False</IsNullOrEmpty>
+      <OrganizationValueRequired>False</OrganizationValueRequired>
+      <OrganizationValueTestString />
+      <RawString>Determine if an audit is configured and started by executing the following query:  
+
+SELECT name AS 'Audit Name', 
+status_desc AS 'Audit Status', 
+audit_file_path AS 'Current Audit File' 
+FROM sys.dm_server_audit_status 
+
+If no records are returned, this is a finding. 
+
+Execute the following query to verify the following events are included in the server audit specification: 
+
+APPLICATION_ROLE_CHANGE_PASSWORD_GROUP 
+AUDIT_CHANGE_GROUP 
+BACKUP_RESTORE_GROUP 
+DATABASE_CHANGE_GROUP 
+DATABASE_OBJECT_CHANGE_GROUP 
+DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP 
+DATABASE_OBJECT_PERMISSION_CHANGE_GROUP 
+DATABASE_OPERATION_GROUP 
+DATABASE_OWNERSHIP_CHANGE_GROUP 
+DATABASE_PERMISSION_CHANGE_GROUP 
+DATABASE_PRINCIPAL_CHANGE_GROUP 
+DATABASE_PRINCIPAL_IMPERSONATION_GROUP 
+DATABASE_ROLE_MEMBER_CHANGE_GROUP 
+DBCC_GROUP 
+LOGIN_CHANGE_PASSWORD_GROUP 
+SCHEMA_OBJECT_CHANGE_GROUP 
+SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP 
+SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP 
+SERVER_OBJECT_CHANGE_GROUP 
+SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP 
+SERVER_OBJECT_PERMISSION_CHANGE_GROUP 
+SERVER_OPERATION_GROUP 
+SERVER_PERMISSION_CHANGE_GROUP 
+SERVER_PRINCIPAL_CHANGE_GROUP 
+SERVER_PRINCIPAL_IMPERSONATION_GROUP 
+SERVER_ROLE_MEMBER_CHANGE_GROUP 
+SERVER_STATE_CHANGE_GROUP 
+TRACE_CHANGE_GROUP 
+USER_CHANGE_PASSWORD_GROUP 
+
+SELECT a.name AS 'AuditName', 
+s.name AS 'SpecName', 
+d.audit_action_name AS 'ActionName', 
+d.audited_result AS 'Result' 
+FROM sys.server_audit_specifications s 
+JOIN sys.server_audits a ON s.audit_guid = a.audit_guid 
+JOIN sys.server_audit_specification_details d ON s.server_specification_id = d.server_specification_id 
+WHERE a.is_state_enabled = 1  
+AND d.audit_action_name IN ('APPLICATION_ROLE_CHANGE_PASSWORD_GROUP','AUDIT_CHANGE_GROUP','BACKUP_RESTORE_GROUP','DATABASE_CHANGE_GROUP','DATABASE_OBJECT_CHANGE_GROUP','DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP','DATABASE_OBJECT_PERMISSION_CHANGE_GROUP','DATABASE_OPERATION_GROUP','DATABASE_OWNERSHIP_CHANGE_GROUP','DATABASE_PERMISSION_CHANGE_GROUP','DATABASE_PRINCIPAL_CHANGE_GROUP','DATABASE_PRINCIPAL_IMPERSONATION_GROUP','DATABASE_ROLE_MEMBER_CHANGE_GROUP','DBCC_GROUP','LOGIN_CHANGE_PASSWORD_GROUP','SCHEMA_OBJECT_CHANGE_GROUP','SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP','SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP','SERVER_OBJECT_CHANGE_GROUP','SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP','SERVER_OBJECT_PERMISSION_CHANGE_GROUP','SERVER_OPERATION_GROUP','SERVER_PERMISSION_CHANGE_GROUP','SERVER_PRINCIPAL_CHANGE_GROUP','SERVER_PRINCIPAL_IMPERSONATION_GROUP','SERVER_ROLE_MEMBER_CHANGE_GROUP','SERVER_STATE_CHANGE_GROUP','TRACE_CHANGE_GROUP','USER_CHANGE_PASSWORD_GROUP') 
+
+If the identified groups are not returned, this is a finding.</RawString>
+      <SetScript>CREATE AUDIT</SetScript>
+      <TestScript>SELECT name AS 'Audit Name', status_desc AS 'Audit Status', audit_file_path AS 'Current Audit File' FROM sys.dm_server_audit_status If no records are returned, this is a finding. Execute the following query to verify the following events are included in the server audit specification: APPLICATION_ROLE_CHANGE_PASSWORD_GROUP AUDIT_CHANGE_GROUP BACKUP_RESTORE_GROUP DATABASE_CHANGE_GROUP DATABASE_OBJECT_CHANGE_GROUP DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP DATABASE_OBJECT_PERMISSION_CHANGE_GROUP DATABASE_OPERATION_GROUP DATABASE_OWNERSHIP_CHANGE_GROUP DATABASE_PERMISSION_CHANGE_GROUP DATABASE_PRINCIPAL_CHANGE_GROUP DATABASE_PRINCIPAL_IMPERSONATION_GROUP DATABASE_ROLE_MEMBER_CHANGE_GROUP DBCC_GROUP LOGIN_CHANGE_PASSWORD_GROUP SCHEMA_OBJECT_CHANGE_GROUP SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP SERVER_OBJECT_CHANGE_GROUP SERVER_OBJECT_OWNERSHIP_CHANGE_GROUP SERVER_OBJECT_PERMISSION_CHANGE_GROUP SERVER_OPERATION_GROUP SERVER_PERMISSION_CHANGE_GROUP SERVER_PRINCIPAL_CHANGE_GROUP SERVER_PRINCIPAL_IMPERSONATION_GROUP SERVER_ROLE_MEMBER_CHANGE_GROUP SERVER_STATE_CHANGE_GROUP TRACE_CHANGE_GROUP ;</TestScript>
+    </Rule>
+    <Rule id="V-79317" severity="medium" conversionstatus="pass" title="SRG-APP-000033-DB-000084" dscresource="SqlScriptQuery">
+      <GetScript>USE master; SELECT name, is_disabled FROM sys.sql_logins WHERE principal_id = 1;</GetScript>
       <IsNullOrEmpty>False</IsNullOrEmpty>
       <OrganizationValueRequired>False</OrganizationValueRequired>
       <OrganizationValueTestString />
@@ -2643,8 +2658,11 @@ GO
 Verify that the "name" column contains the current name of the [sa] database server account (see note). 
 
 If the "is_disabled" column is not set to 1, this is a finding.</RawString>
+      <SetScript>USE master; ALTER LOGIN [sa] DISABLE;</SetScript>
+      <TestScript>USE master; SELECT name, is_disabled FROM sys.sql_logins WHERE principal_id = 1;</TestScript>
     </Rule>
-    <Rule id="V-79319" severity="medium" conversionstatus="pass" title="SRG-APP-000141-DB-000092" dscresource="None">
+    <Rule id="V-79319" severity="medium" conversionstatus="pass" title="SRG-APP-000141-DB-000092" dscresource="SqlScriptQuery">
+      <GetScript>USE master; SELECT * FROM sys.sql_logins WHERE [name] = 'sa' OR [principal_id] = 1;</GetScript>
       <IsNullOrEmpty>False</IsNullOrEmpty>
       <OrganizationValueRequired>False</OrganizationValueRequired>
       <OrganizationValueTestString />
@@ -2658,29 +2676,44 @@ WHERE [name] = 'sa' OR [principal_id] = 1;
 GO 
 
 If the login account name "SA" or "sa" appears in the query output, this is a finding.</RawString>
+      <SetScript>USE master; ALTER LOGIN [sa] WITH NAME = &lt;new name&gt;</SetScript>
+      <TestScript>USE master; SELECT * FROM sys.sql_logins WHERE [name] = 'sa' OR [principal_id] = 1;</TestScript>
     </Rule>
-    <Rule id="V-79357" severity="high" conversionstatus="pass" title="SRG-APP-000178-DB-000083" dscresource="None">
+    <Rule id="V-79327" severity="medium" conversionstatus="pass" title="SRG-APP-000141-DB-000093" dscresource="SqlScriptQuery">
+      <GetScript>SELECT OBJECT_NAME(major_id) AS [Stored Procedure] ,dpr.NAME AS [Principal] FROM sys.database_permissions AS dp INNER JOIN sys.database_principals AS dpr ON dp.grantee_principal_id = dpr.principal_id WHERE major_id IN (</GetScript>
       <IsNullOrEmpty>False</IsNullOrEmpty>
       <OrganizationValueRequired>False</OrganizationValueRequired>
       <OrganizationValueTestString />
-      <RawString>Determine whether any applications that access the database allow for entry of the account name and password, or PIN.
+      <RawString>Registry extended stored procedures allow Microsoft SQL Server to read, write, and enumerate values and keys in the registry. They are used by Enterprise Manager to configure the server. This rule checks that the permissions to execute registry extended stored procedures have been revoked from all users (other than dbo). 
 
-If any do, determine whether these applications obfuscate authentication data; if they do not, this is a finding.</RawString>
-    </Rule>
-  </ManualRule>
-  <SqlScriptQueryRule dscresourcemodule="SqlServerDsc">
-    <Rule id="V-79129" severity="high" conversionstatus="fail" title="SRG-APP-000080-DB-000063" dscresource="">
-      <GetScript />
-      <IsNullOrEmpty>False</IsNullOrEmpty>
-      <OrganizationValueRequired>False</OrganizationValueRequired>
-      <OrganizationValueTestString />
-      <RawString>Execute the following query to list permissions granted to NT AUTHORITY\SYSTEM (SYSTEM):
-EXECUTE AS LOGIN = 'NT AUTHORITY\SYSTEM'
-SELECT * FROM fn_my_permissions(NULL,NULL)
-REVERT
-If any permissions have been granted to SYSTEM beyond "CONNECT SQL" and "VIEW ANY DATABASE", this is a finding.</RawString>
-      <SetScript />
-      <TestScript />
+SELECT OBJECT_NAME(major_id) AS [Stored Procedure]
+ ,dpr.NAME AS [Principal]
+FROM sys.database_permissions AS dp
+INNER JOIN sys.database_principals AS dpr ON dp.grantee_principal_id = dpr.principal_id
+WHERE major_id IN (
+  OBJECT_ID('xp_regaddmultistring')
+  ,OBJECT_ID('xp_regdeletekey')
+  ,OBJECT_ID('xp_regdeletevalue')
+  ,OBJECT_ID('xp_regenumvalues')
+  ,OBJECT_ID('xp_regenumkeys')
+  ,OBJECT_ID('xp_regread')
+  ,OBJECT_ID('xp_regremovemultistring')
+  ,OBJECT_ID('xp_regwrite')
+  ,OBJECT_ID('xp_instance_regaddmultistring')
+  ,OBJECT_ID('xp_instance_regdeletekey')
+  ,OBJECT_ID('xp_instance_regdeletevalue')
+  ,OBJECT_ID('xp_instance_regenumkeys')
+  ,OBJECT_ID('xp_instance_regenumvalues')
+  ,OBJECT_ID('xp_instance_regread')
+  ,OBJECT_ID('xp_instance_regremovemultistring')
+  ,OBJECT_ID('xp_instance_regwrite')
+  )
+ AND dp.[type] = 'EX'
+ORDER BY dpr.NAME;
+
+If any records are returned, review the system documentation to determine whether the accessing of the registry via  extended stored procedures are required and authorized. If it is not authorized, this is a finding.</RawString>
+      <SetScript>USE master</SetScript>
+      <TestScript>SELECT OBJECT_NAME(major_id) AS [Stored Procedure] ,dpr.NAME AS [Principal] FROM sys.database_permissions AS dp INNER JOIN sys.database_principals AS dpr ON dp.grantee_principal_id = dpr.principal_id WHERE major_id IN (</TestScript>
     </Rule>
   </SqlScriptQueryRule>
 </DISASTIG>

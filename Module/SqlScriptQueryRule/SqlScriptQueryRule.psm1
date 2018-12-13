@@ -155,6 +155,7 @@ Class SqlScriptQueryRule : Rule
 
     static [bool] Match ([string] $CheckContent)
     {
+        # Provide match criteria to validate that the rule is (or is not) a SQL rule.
         # Standard match rules
         if
         (
@@ -180,6 +181,14 @@ Class SqlScriptQueryRule : Rule
         if
         (
             $CheckContent -Match "DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP"
+        )
+        {
+            return $true
+        }
+        # SQL Server 2016
+        if
+        (
+            $CheckContent -Match "principal_id"
         )
         {
             return $true
