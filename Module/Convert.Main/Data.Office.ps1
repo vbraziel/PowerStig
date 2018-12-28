@@ -35,28 +35,36 @@ $global:SingleLineRegistryValueName += [ordered]@{
         Match  = 'Configure trusted add-ins'
         Select = '(?<=ty\\).*(?=\sIn)'
     }
-    # Added for Outlook 2016 Stig V-71193
-    Office4 = @{
-        Match  = 'Configure trusted add-ins'
-        Select = '(?<=If the value\s)(.*)(?=does)'
+    # Added for Office 2016 STIGs Excel, PPT, Word
+    Office10 = @{
+        Select = '(?<=If the value\s)(.*)(?<=PV)'
     }
-    # Added for Outlook 2013 Stig V-17761.a
+    # Added for Outlook 2016 Stig V-71193 and Excel 2016 Stig V-71015
+    Office4 = @{
+        Select = '((?<=If the value\s)(.*)(?=does\snot))'
+    }
+<#    # Added for Excel 2016 Stig V-71015 - Can I wrap this one into the Office4 RegEx?
     Office5 = @{
+      #  Match  = 'ExcelBypassEncrypted'
+        Select = '((?<=If the value\s)(.*)(?=does\snot))'
+    }#>
+    # Added for Outlook 2013 Stig V-17761.a
+    Office6 = @{
         Match  = 'a value of between'
         Select = '((?<=gs\\)(.*)(?<=Len))'
     }
     # Added for Outlook 2013 Stig V-17774 and V-17775
-    Office6 = @{
+    Office7 = @{
         Match  = 'FileExtensionsRemoveLevel'
         Select = '(?<=the registry value\s.)(.*)(?=.\We)'
     }
     # Added for Outlook 2013 Stig V-17733
-    Office7 = [ordered]@{
+    Office8 = [ordered]@{
         Match  = 'If the.+(registry key exist)'
         Select = '(?<=ty\\).*(?=\sC)'
     }
     # Added for Outlook 2016 Stig V-71123
-    Office8 = @{
+    Office9 = @{
         Select = '(?<=If the value of\s)(.*)(?=is\sR)'
     }
 }
@@ -79,6 +87,7 @@ $global:SingleLineRegistryValueData += [ordered]@{
     }
     # Added for Outlook 2013 Stig V-17776 and Outlok 2016 Stig V-71133
     Office2 = @{
+        Match = 'PublishCalendarDetailsPolicy'
         Select = '((?<=is\s)(.*)(?=\sor))'
     }
     # Added for Outlook 2013 Stig V-17761.a
