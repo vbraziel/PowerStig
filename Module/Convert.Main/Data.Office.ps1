@@ -36,35 +36,35 @@ $global:SingleLineRegistryValueName += [ordered]@{
         Select = '(?<=ty\\).*(?=\sIn)'
     }
     # Added for Office 2016 STIGs Excel, PPT, Word
-    Office10 = @{
+    Office4 = @{
         Select = '(?<=If the value\s)(.*)(?<=PV)'
     }
+    # Added for Excel 2016 Stig V-71015 and Word 2016 Stig V-71089
+    Office5 = @{
+        Match = 'vbawarnings'
+        Select = '((?<=If the value\s)(.*)(?<=warnings))'
+    }
     # Added for Outlook 2016 Stig V-71193 and Excel 2016 Stig V-71015
-    Office4 = @{
+    Office6 = @{
         Select = '((?<=If the value\s)(.*)(?=does\snot))'
     }
-<#    # Added for Excel 2016 Stig V-71015 - Can I wrap this one into the Office4 RegEx?
-    Office5 = @{
-      #  Match  = 'ExcelBypassEncrypted'
-        Select = '((?<=If the value\s)(.*)(?=does\snot))'
-    }#>
     # Added for Outlook 2013 Stig V-17761.a
-    Office6 = @{
+    Office7 = @{
         Match  = 'a value of between'
         Select = '((?<=gs\\)(.*)(?<=Len))'
     }
     # Added for Outlook 2013 Stig V-17774 and V-17775
-    Office7 = @{
+    Office8 = @{
         Match  = 'FileExtensionsRemoveLevel'
         Select = '(?<=the registry value\s.)(.*)(?=.\We)'
     }
     # Added for Outlook 2013 Stig V-17733
-    Office8 = [ordered]@{
+    Office9 = [ordered]@{
         Match  = 'If the.+(registry key exist)'
         Select = '(?<=ty\\).*(?=\sC)'
     }
     # Added for Outlook 2016 Stig V-71123
-    Office9 = @{
+    Office10 = @{
         Select = '(?<=If the value of\s)(.*)(?=is\sR)'
     }
 }
@@ -94,5 +94,10 @@ $global:SingleLineRegistryValueData += [ordered]@{
     Office3 = @{
         Match  = 'a value of between'
         Select = '(?<=between\s)(.*)(?<=\s)'
+    }
+        # Added for Excel 2016 Stig V-71011 and PPT 2016 Stig V-70667, but removed the 1b(hex) from raw to catch decimal
+    Office4 = @{
+        Match  = 'DefaultFormat'
+        Select = '((?<=is\s)(.*)(?=\sor))'
     }
 }
